@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App - Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <h1>💬 Chat App</h1>
+            <p class="subtitle">Apna WhatsApp jaisa chat</p>
+
+            <div class="tabs">
+                <button id="loginTab" class="tab active" onclick="showLogin()">Login</button>
+                <button id="registerTab" class="tab" onclick="showRegister()">Register</button>
+            </div>
+
+            <div id="loginForm" class="form-section">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button class="btn-primary" onclick="loginUser()">Login</button>
+                <p id="loginError" class="error-msg"></p>
+            </div>
+
+            <div id="registerForm" class="form-section hidden">
+                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="email" id="regEmail" placeholder="Email" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <div class="phone-input-group">
+                    <select id="regCountryCode" class="country-select"></select>
+                    <input type="tel" id="regPhone" placeholder="3001234567" required>
+                </div>
+                <button class="btn-primary" onclick="registerUser()">Register</button>
+                <p id="registerError" class="error-msg"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://127.0.0.1:8000";
+
+        const COUNTRIES = [
+            { code: "+92", name: "Pakistan 🇵🇰" },
+            { code: "+91", name: "India 🇮🇳" },
+            { code: "+1", name: "USA 🇺🇸" },
+            { code: "+44", name: "UK 🇬🇧" },
+            { code: "+971", name: "UAE 🇦🇪" },
+            { code: "+966", name: "Saudi Arabia 🇸🇦" },
+            { code: "+974", name: "Qatar 🇶🇦" },
+            { code: "+965", name: "Kuwait 🇰🇼" },
+            { code: "+973", name: "Bahrain 🇧🇭" },
+            { code: "+968", name: "Oman 🇴🇲" },
+            { code: "+61", name: "Australia 🇦🇺" },
+            { code: "+86", name: "China 🇨🇳" },
+            { code: "+81", name: "Japan 🇯🇵" },
+            { code: "+82", name: "South Korea 🇰🇷" },
+            { code: "+49", name: "Germany 🇩🇪" },
+            { code: "+33", name: "France 🇫🇷" },
+            { code: "+39", name: "Italy 🇮🇹" },
+            { code: "+34", name: "Spain 🇪🇸" },
+            { code: "+7", name: "Russia 🇷🇺" },
+            { code: "+90", name: "Turkey 🇹🇷" },
+            { code: "+880", name: "Bangladesh 🇧🇩" },
+            { code: "+94", name: "Sri Lanka 🇱🇰" },
+            { code: "+977", name: "Nepal 🇳🇵" },
+            { code: "+60", name: "Malaysia 🇲🇾" },
+            { code: "+65", name: "Singapore 🇸🇬" },
+            { code: "+62", name: "Indonesia 🇮🇩" },
+            { code: "+63", name: "Philippines 🇵🇭" },
+            { code: "+66", name: "Thailand 🇹🇭" },
+            { code: "+84", name: "Vietnam 🇻🇳" }
+        ];
+
+        function populateCountryDropdown() {
+            const select = document.getElementById("regCountryCode");
+            select.innerHTML = COUNTRIES.map(c => 
+                `<option value="${c.code}">${c.name} (${c.code})</option>`
+            ).join("");
+            select.value = "+92";
+        }
+
+        populateCountryDropdown();
+
+        function showLogin() {
+            document.getElementById("loginForm").classList.remove("hidden");
+            document.getElementById("registerForm").classList.add("hidden");
+            document.getElementById("loginTab").classList.add("active");
+            document.getElementById("registerTab").classList.remove("active");
+        }
+
+        function showRegister() {
+            document.getElementById("loginForm").classList.add("hidden");
+            document.getElementById("registerForm").classList.remove("hidden");
+            document.getElementById("registerTab").classList.add("active");
+            document.getElementById("loginTab").classList.remove("active");
+        }
+
+        async function registerUser() {
+            const username = document.getElementById("regUsername").value.trim();
+            const email = document.getElementById("regEmail").value.trim();
+            const password = document.getElementById("regPassword").value;
+            const countryCode = document.getElementById("regCountryCode").value;
+            const phoneLocal = document.getElementById("regPhone").value.trim();
+
+            if (!username || !email || !password || !phoneLocal) {
+                document.getElementById("registerError").textContent = "Sab fields bharein";
+                return;
+            }
+
+            const fullPhone = countryCode + phoneLocal.replace(/^0+/, "");
+
+            try {
+                const res = await fetch(`${API}/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, email, password, phone: fullPhone })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem("uid", data.uid);
+                    localStorage.setItem("username", username);
+                    localStorage.setItem("email", email);
+                    localStorage.setItem("phone", data.phone);
+                    localStorage.setItem("dp_url", "");
+                    window.location.href = "/chat";
+                } else {
+                    document.getElementById("registerError").textContent = data.detail || "Error";
+                }
+            } catch (e) {
+                document.getElementById("registerError").textContent = "Server error";
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+
+            if (!email || !password) {
+                document.getElementById("loginError").textContent = "Email aur password dein";
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem("uid", data.uid);
+                    localStorage.setItem("username", data.username);
+                    localStorage.setItem("email", email);
+                    localStorage.setItem("phone", data.phone || "");
+                    localStorage.setItem("dp_url", data.dp_url || "");
+                    window.location.href = "/chat";
+                } else {
+                    document.getElementById("loginError").textContent = data.detail || "Login failed";
+                }
+            } catch (e) {
+                document.getElementById("loginError").textContent = "Server error";
+            }
+        }
+    </script>
+</body>
+</html>

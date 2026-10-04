@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="avatar-wrapper" onclick="document.getElementById('dpInput').click()" style="cursor:pointer" title="DP change karein">
+                        <div class="avatar" id="myAvatar">U</div>
+                    </div>
+                    <span id="myUsername" onclick="openUsernameModal()" style="cursor:pointer">User ✏️</span>
+                </div>
+                <div class="header-buttons">
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                    <button class="delete-btn" onclick="confirmDelete()">🗑️</button>
+                </div>
+            </div>
+
+            <input type="file" id="dpInput" style="display:none" accept="image/*" onchange="handleDpUpload(event)">
+
+            <div class="search-box">
+                <input type="text" id="searchUser" placeholder="Email ya phone...">
+                <button onclick="searchUser()">🔍</button>
+            </div>
+
+            <div class="chat-list" id="chatList">
+                <p class="empty-msg">Koi chat nahi. User dhoondein.</p>
+            </div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="chat-header" id="chatHeader">
+                <button class="back-btn" onclick="closeChat()">←</button>
+                <p>Chat select karein</p>
+            </div>
+
+            <div class="messages" id="messages">
+                <p class="empty-msg">Chat shuru karne ke liye user select karein</p>
+            </div>
+
+            <div class="typing-indicator hidden" id="typingIndicator">
+                <span id="typingText">typing</span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+
+            <div class="file-preview hidden" id="filePreview">
+                <span id="filePreviewText"></span>
+                <button onclick="clearFile()">✖️</button>
+            </div>
+
+            <div class="message-input hidden" id="messageInput">
+                <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+                <input type="file" id="fileInput" style="display:none" 
+                       accept="image/*,video/*,.pdf,.doc,.docx,.txt" 
+                       onchange="handleFileSelect(event)">
+                <input type="text" id="msgText" placeholder="Message likhein..."
+                       oninput="onTyping()"
+                       onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()">Send ➤</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Username Modal -->
+    <div class="modal-overlay hidden" id="usernameModal">
+        <div class="modal-box">
+            <h3>✏️ Username Change</h3>
+            <p>Naya username daalein:</p>
+            <input type="text" id="newUsername" placeholder="Naya username">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeUsernameModal()">Cancel</button>
+                <button class="btn-primary" onclick="updateUsername()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Contact Modal -->
+    <div class="modal-overlay hidden" id="saveContactModal">
+        <div class="modal-box">
+            <h3>💾 Contact Save Karein</h3>
+            <p id="saveContactInfo">Is user ko kis naam se save karna hai?</p>
+            <input type="text" id="contactSavedName" placeholder="Naam">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeSaveContact()">Cancel</button>
+                <button class="btn-primary" onclick="saveContact()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal-overlay hidden" id="deleteModal">
+        <div class="modal-box">
+            <h3>⚠️ Account Delete Karein?</h3>
+            <p>Yeh amal wapas nahi ho sakta.</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-danger" onclick="deleteAccount()">Delete Forever</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Country Modal -->
+    <div class="modal-overlay hidden" id="searchCountryModal">
+        <div class="modal-box">
+            <h3>🌍 Country Code</h3>
+            <p>Country select karein:</p>
+            <select id="searchCountryCode" class="country-select-full"></select>
+            <input type="tel" id="searchPhoneLocal" placeholder="3001234567">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeSearchCountry()">Cancel</button>
+                <button class="btn-primary" onclick="searchByPhone()">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forward Modal -->
+    <div class="modal-overlay hidden" id="forwardModal">
+        <div class="modal-box">
+            <h3>↪️ Forward Message</h3>
+            <p>Kis ko forward karna hai? (Multiple select karein)</p>
+            <div class="forward-list" id="forwardList"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeForwardModal()">Cancel</button>
+                <button class="btn-primary" onclick="doForward()">Forward</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://127.0.0.1:8000";
+        const WS_URL = "ws://127.0.0.1:8000/ws";
+
+        let myUid = localStorage.getItem("uid");
+        let myUsername = localStorage.getItem("username");
+        let myDp = localStorage.getItem("dp_url") || "";
+
+        if (!myUid) window.location.href = "/";
+
+        document.getElementById("myUsername").textContent = (myUsername || "User") + " ✏️";
+
+        let currentChatUser = null;
+        let ws = null;
+        let chatListData = [];
+        let savedContacts = {};
+        let typingTimeout = null;
+        let isTyping = false;
+        let hideTypingTimer = null;
+        let messageElements = {};
+        let selectedFile = null;
+        let forwardingMessage = null;
+        let forwardSelectedUsers = [];
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add("show"), 10);
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function formatTime(isoString) {
+            try {
+                const date = new Date(isoString);
+                return date.toLocaleTimeString('en-PK', {
+                    hour: '2-digit', minute: '2-digit', hour12: true,
+                    timeZone: 'Asia/Karachi'
+                });
+            } catch (e) { return ""; }
+        }
+
+        function getDisplayName(user) {
+            if (savedContacts[user.uid]) return savedContacts[user.uid];
+            return user.username;
+        }
+
+        function getAvatarHtml(user, size = 40) {
+            if (user.dp_url) {
+                return `<img src="${API}${user.dp_url}" class="avatar-img" style="width:${size}px;height:${size}px">`;
+            }
+            const name = getDisplayName(user) || "U";
+            return `<div class="avatar" style="width:${size}px;height:${size}px">${name[0].toUpperCase()}</div>`;
+        }
+
+        function setMyAvatar() {
+            const el = document.getElementById("myAvatar");
+            if (!el) return;
+            const wrapper = el.parentElement;
+            if (myDp) {
+                wrapper.innerHTML = `<img src="${API}${myDp}" class="avatar-img" style="width:40px;height:40px">`;
+            } else {
+                wrapper.innerHTML = `<div class="avatar" id="myAvatar" style="width:40px;height:40px">${(myUsername || "U")[0].toUpperCase()}</div>`;
+            }
+        }
+
+        setMyAvatar();
+
+        const COUNTRIES = [
+            { code: "+92", name: "Pakistan 🇵🇰" },
+            { code: "+91", name: "India 🇮🇳" },
+            { code: "+1", name: "USA 🇺🇸" },
+            { code: "+44", name: "UK 🇬🇧" },
+            { code: "+971", name: "UAE 🇦🇪" },
+            { code: "+966", name: "Saudi Arabia 🇸🇦" },
+            { code: "+974", name: "Qatar 🇶🇦" },
+            { code: "+965", name: "Kuwait 🇰🇼" },
+            { code: "+973", name: "Bahrain 🇧🇭" },
+            { code: "+968", name: "Oman 🇴🇲" },
+            { code: "+61", name: "Australia 🇦🇺" },
+            { code: "+86", name: "China 🇨🇳" },
+            { code: "+81", name: "Japan 🇯🇵" },
+            { code: "+49", name: "Germany 🇩🇪" },
+            { code: "+33", name: "France 🇫🇷" },
+            { code: "+39", name: "Italy 🇮🇹" },
+            { code: "+34", name: "Spain 🇪🇸" },
+            { code: "+90", name: "Turkey 🇹🇷" },
+            { code: "+880", name: "Bangladesh 🇧🇩" },
+            { code: "+94", name: "Sri Lanka 🇱🇰" },
+            { code: "+977", name: "Nepal 🇳🇵" },
+            { code: "+60", name: "Malaysia 🇲🇾" },
+            { code: "+65", name: "Singapore 🇸🇬" },
+            { code: "+62", name: "Indonesia 🇮🇩" },
+            { code: "+63", name: "Philippines 🇵🇭" },
+            { code: "+66", name: "Thailand 🇹🇭" },
+            { code: "+84", name: "Vietnam 🇻🇳" }
+        ];
+
+        function populateSearchCountry() {
+            const select = document.getElementById("searchCountryCode");
+            select.innerHTML = COUNTRIES.map(c => 
+                `<option value="${c.code}">${c.name} (${c.code})</option>`
+            ).join("");
+            select.value = "+92";
+        }
+
+        function getChatId(uid1, uid2) {
+            return [uid1, uid2].sort().join("_");
+        }
+
+        async function loadContacts() {
+            try {
+                const res = await fetch(`${API}/contacts/${myUid}`);
+                const data = await res.json();
+                savedContacts = data.contacts || {};
+            } catch (e) {
+                console.log("Contacts load error:", e);
+            }
+        }
+
+        function connectWS() {
+            ws = new WebSocket(`${WS_URL}/${myUid}`);
+            ws.onopen = () => {
+                console.log("WebSocket connected");
+                loadContacts().then(() => loadChatList());
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === "message_sent") {
+                    const msg = data.message;
+                    if (data.temp_id && messageElements[data.temp_id]) {
+                        const el = messageElements[data.temp_id];
+                        delete messageElements[data.temp_id];
+                        el.remove();
+                    }
+                    if (currentChatUser && data.chat_id === getChatId(myUid, currentChatUser.uid)) {
+                        addMessageToUI(msg, true);
+                    }
+                    loadChatList();
+                }
+
+                if (data.type === "message_delivered") {
+                    const el = messageElements[data.message_id];
+                    if (el) {
+                        const tick = el.querySelector(".msg-tick");
+                        if (tick) {
+                            tick.classList.remove("single");
+                            tick.classList.add("double");
+                        }
+                    }
+                }
+
+                if (data.type === "new_message") {
+                    const msg = data.message;
+                    if (currentChatUser && data.chat_id === getChatId(myUid, currentChatUser.uid)) {
+                        addMessageToUI(msg, false);
+                        hideTypingIndicator();
+                        markAsRead(currentChatUser.uid);
+                    } else {
+                        showToast("Naya message aaya!", "info");
+                    }
+                    loadChatList();
+                }
+
+                if (data.type === "messages_read") {
+                    if (currentChatUser && data.reader_id === currentChatUser.uid) {
+                        data.message_ids.forEach(id => {
+                            const el = messageElements[id];
+                            if (el) {
+                                const tick = el.querySelector(".msg-tick");
+                                if (tick) {
+                                    tick.classList.remove("single", "double");
+                                    tick.classList.add("double", "blue");
+                                }
+                            }
+                        });
+                    }
+                    loadChatList();
+                }
+
+                if (data.type === "typing") {
+                    if (currentChatUser && data.sender_id === currentChatUser.uid) {
+                        showTypingIndicator(getDisplayName(currentChatUser));
+                    }
+                }
+
+                if (data.type === "stop_typing") {
+                    if (currentChatUser && data.sender_id === currentChatUser.uid) {
+                        hideTypingIndicator();
+                    }
+                }
+
+                if (data.type === "user_online") {
+                    chatListData.forEach(c => {
+                        if (c.user.uid === data.user_id) c.is_online = true;
+                    });
+                    renderChatList();
+                    if (currentChatUser && currentChatUser.uid === data.user_id) {
+                        renderChatHeader();
+                    }
+                }
+
+                if (data.type === "user_offline") {
+                    chatListData.forEach(c => {
+                        if (c.user.uid === data.user_id) c.is_online = false;
+                    });
+                    renderChatList();
+                    if (currentChatUser && currentChatUser.uid === data.user_id) {
+                        renderChatHeader();
+                    }
+                }
+
+                if (data.type === "username_updated") {
+                    if (data.user_id === myUid) {
+                        myUsername = data.new_username;
+                        localStorage.setItem("username", myUsername);
+                        document.getElementById("myUsername").textContent = myUsername + " ✏️";
+                    } else {
+                        chatListData.forEach(c => {
+                            if (c.user.uid === data.user_id) c.user.username = data.new_username;
+                        });
+                        if (currentChatUser && currentChatUser.uid === data.user_id) {
+                            currentChatUser.username = data.new_username;
+                            renderChatHeader();
+                        }
+                        renderChatList();
+                    }
+                }
+
+                if (data.type === "dp_updated") {
+                    if (data.user_id === myUid) {
+                        myDp = data.dp_url;
+                        localStorage.setItem("dp_url", myDp);
+                        setMyAvatar();
+                    } else {
+                        chatListData.forEach(c => {
+                            if (c.user.uid === data.user_id) c.user.dp_url = data.dp_url;
+                        });
+                        if (currentChatUser && currentChatUser.uid === data.user_id) {
+                            currentChatUser.dp_url = data.dp_url;
+                            renderChatHeader();
+                        }
+                        renderChatList();
+                    }
+                }
+            };
+
+            ws.onclose = (event) => {
+                if (event.code === 1008) {
+                    showToast("Account delete ho gaya", "error");
+                    localStorage.clear();
+                    setTimeout(() => window.location.href = "/", 1500);
+                    return;
+                }
+                setTimeout(connectWS, 3000);
+            };
+        }
+
+        connectWS();
+
+        async function loadChatList() {
+            try {
+                const res = await fetch(`${API}/chat-list/${myUid}`);
+                const data = await res.json();
+                chatListData = data.chats || [];
+                renderChatList();
+            } catch (e) {
+                console.log("Chat list load error:", e);
+                renderChatList();
+            }
+        }
+
+        function renderChatList() {
+            const list = document.getElementById("chatList");
+            if (chatListData.length === 0) {
+                list.innerHTML = '<p class="empty-msg">Koi chat nahi. User dhoondein.</p>';
+                return;
+            }
+
+            list.innerHTML = chatListData.map(c => {
+                const u = c.user;
+                const m = c.latest_message;
+                const unread = c.unread_count;
+                const displayName = getDisplayName(u);
+                const isOnline = c.is_online;
+
+                let preview = "";
+                let tickPreview = "";
+                let timeStr = "";
+
+                if (m) {
+                    preview = m.text || (m.file_type === "image" ? "📷 Image" : m.file_type === "video" ? "🎥 Video" : "📄 File");
+                    if (m.sender_id === myUid) preview = "Aap: " + preview;
+                    if (preview.length > 30) preview = preview.substring(0, 30) + "...";
+
+                    if (m.sender_id === myUid) {
+                        if (m.read) tickPreview = '<span class="tick-preview blue">✓✓</span>';
+                        else if (m.delivered) tickPreview = '<span class="tick-preview">✓✓</span>';
+                        else tickPreview = '<span class="tick-preview">✓</span>';
+                    }
+                    timeStr = formatTime(m.timestamp);
+                } else {
+                    preview = "Chat shuru karein";
+                }
+
+                const unreadBadge = unread > 0 ? `<span class="unread-badge">${unread}</span>` : "";
+                const active = currentChatUser && currentChatUser.uid === u.uid ? "active" : "";
+
+                return `
+                    <div class="chat-item ${active}" onclick="openChat('${u.uid}', '${u.username}', '${u.email}')">
+                        <div class="avatar-wrapper">
+                            ${getAvatarHtml(u, 45)}
+                            ${isOnline ? '<span class="online-dot"></span>' : ''}
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-top">
+                                <span class="chat-item-name">${displayName}</span>
+                                <span class="chat-item-time">${timeStr}</span>
+                            </div>
+                            <div class="chat-item-bottom">
+                                <span class="chat-item-preview">${tickPreview} ${escapeHtml(preview)}</span>
+                                ${unreadBadge}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        async function searchUser() {
+            const query = document.getElementById("searchUser").value.trim();
+            if (!query) return;
+
+            if (query.includes("@")) {
+                try {
+                    const res = await fetch(`${API}/find-user/${query}`);
+                    const data = await res.json();
+                    if (data.success && data.user.uid !== myUid) {
+                        openChat(data.user.uid, data.user.username, data.user.email);
+                        document.getElementById("searchUser").value = "";
+                        loadChatList();
+                    } else {
+                        showToast("User nahi mila ya woh aap khud hain", "error");
+                    }
+                } catch (e) {
+                    showToast("Server error", "error");
+                }
+            } 
+            else if (/\d/.test(query)) {
+                populateSearchCountry();
+                document.getElementById("searchPhoneLocal").value = query;
+                document.getElementById("searchCountryModal").classList.remove("hidden");
+            } 
+            else {
+                showToast("Email ya phone number daalein", "error");
+            }
+        }
+
+        async function searchByPhone() {
+            const code = document.getElementById("searchCountryCode").value;
+            const local = document.getElementById("searchPhoneLocal").value.trim();
+            if (!local) return;
+
+            const fullPhone = code + local.replace(/^0+/, "");
+
+            try {
+                const res = await fetch(`${API}/find-phone/${encodeURIComponent(fullPhone)}`);
+                const data = await res.json();
+                if (data.success && data.user.uid !== myUid) {
+                    closeSearchCountry();
+                    openChat(data.user.uid, data.user.username, data.user.email);
+                    document.getElementById("searchUser").value = "";
+                    loadChatList();
+                } else {
+                    showToast("User nahi mila ya woh aap khud hain", "error");
+                }
+            } catch (e) {
+                showToast("Server error", "error");
+            }
+        }
+
+        function closeSearchCountry() {
+            document.getElementById("searchCountryModal").classList.add("hidden");
+        }
+
+        async function openChat(uid, username, email) {
+            currentChatUser = { uid, username, email };
+            hideTypingIndicator();
+            messageElements = {};
+            clearFile();
+
+            renderChatHeader();
+            document.getElementById("messageInput").classList.remove("hidden");
+            renderChatList();
+
+            document.getElementById("chatArea").classList.add("active");
+            document.getElementById("sidebar").classList.add("hidden-mobile");
+
+            const res = await fetch(`${API}/messages/${myUid}/${uid}`);
+            const data = await res.json();
+
+            const msgBox = document.getElementById("messages");
+            msgBox.innerHTML = "";
+
+            if (data.messages.length === 0) {
+                msgBox.innerHTML = '<p class="empty-msg">Abhi koi message nahi. Pehla message bhejein!</p>';
+            } else {
+                data.messages.forEach(m => addMessageToUI(m, m.sender_id === myUid));
+            }
+
+            markAsRead(uid);
+            loadChatList();
+        }
+
+        function renderChatHeader() {
+            if (!currentChatUser) return;
+            const displayName = getDisplayName(currentChatUser);
+            const isOnline = chatListData.find(c => c.user.uid === currentChatUser.uid)?.is_online;
+
+            document.getElementById("chatHeader").innerHTML = `
+                <button class="back-btn" onclick="closeChat()">←</button>
+                <div class="avatar-wrapper">
+                    ${getAvatarHtml(currentChatUser, 42)}
+                    ${isOnline ? '<span class="online-dot"></span>' : ''}
+                </div>
+                <div style="flex:1">
+                    <strong>${displayName}</strong>
+                    <small>${isOnline ? '🟢 Online' : 'Offline'}</small>
+                </div>
+                <button class="save-contact-btn" onclick="openSaveContact()">💾</button>
+                <button class="close-chat-btn" onclick="closeChat()">✖️</button>
+            `;
+        }
+
+        function markAsRead(senderId) {
+            if (!currentChatUser) return;
+            ws.send(JSON.stringify({ type: "mark_read", reader_id: myUid, sender_id: senderId }));
+        }
+
+        function addMessageToUI(msg, isMine) {
+            const msgBox = document.getElementById("messages");
+            const empty = msgBox.querySelector(".empty-msg");
+            if (empty) empty.remove();
+
+            if (msg.id && messageElements[msg.id]) return;
+
+            const div = document.createElement("div");
+            div.className = `message ${isMine ? 'sent' : 'received'}`;
+
+            let content = "";
+
+            if (msg.file_url) {
+                const fullUrl = `${API}${msg.file_url}`;
+                const dlUrl = `${API}/download/${msg.file_url.split('/').pop()}`;
+                if (msg.file_type === "image") {
+                    content += `
+                        <div class="msg-attachment">
+                            <img src="${fullUrl}" class="msg-image" onclick="window.open('${fullUrl}','_blank')">
+                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
+                        </div>`;
+                } else if (msg.file_type === "video") {
+                    content += `
+                        <div class="msg-attachment">
+                            <video src="${fullUrl}" controls class="msg-video"></video>
+                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
+                        </div>`;
+                } else if (msg.file_type === "audio") {
+                    content += `
+                        <div class="msg-attachment">
+                            <audio src="${fullUrl}" controls class="msg-audio"></audio>
+                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
+                        </div>`;
+                } else {
+                    content += `
+                        <div class="msg-attachment">
+                            <a href="${fullUrl}" target="_blank" class="msg-file">📄 ${escapeHtml(msg.file_name || "File")}</a>
+                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
+                        </div>`;
+                }
+            }
+
+            if (msg.text) {
+                content += `<div class="msg-text">${escapeHtml(msg.text)}</div>`;
+            }
+
+            let tickHtml = "";
+            if (isMine) {
+                if (msg.read) tickHtml = '<span class="msg-tick double blue">✓✓</span>';
+                else if (msg.delivered) tickHtml = '<span class="msg-tick double">✓✓</span>';
+                else tickHtml = '<span class="msg-tick single">✓</span>';
+            }
+
+            content += `
+                <div class="msg-meta">
+                    <span class="msg-time">${formatTime(msg.timestamp)}</span>
+                    ${tickHtml}
+                </div>
+            `;
+
+            div.innerHTML = content;
+
+            // Right-click / long press
+            div.oncontextmenu = (e) => {
+                e.preventDefault();
+                showMessageMenu(msg);
+            };
+
+            let pressTimer;
+            div.addEventListener('touchstart', () => {
+                pressTimer = setTimeout(() => showMessageMenu(msg), 600);
+            });
+            div.addEventListener('touchend', () => clearTimeout(pressTimer));
+            div.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+            msgBox.appendChild(div);
+            msgBox.scrollTop = msgBox.scrollHeight;
+
+            if (msg.id) messageElements[msg.id] = div;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showMessageMenu(msg) {
+            forwardingMessage = msg;
+            openForwardModal();
+        }
+
+        function openForwardModal() {
+            forwardSelectedUsers = [];
+            const list = document.getElementById("forwardList");
+
+            if (chatListData.length === 0) {
+                list.innerHTML = '<p class="empty-msg">Koi chat nahi.</p>';
+                document.getElementById("forwardModal").classList.remove("hidden");
+                return;
+            }
+
+            list.innerHTML = chatListData.map(c => {
+                const u = c.user;
+                const displayName = getDisplayName(u);
+                return `
+                    <div class="forward-item" onclick="toggleForwardUser('${u.uid}', this)">
+                        <input type="checkbox" id="fwd_${u.uid}" onclick="event.stopPropagation(); toggleForwardUser('${u.uid}', this.parentElement)">
+                        <div class="avatar-wrapper">
+                            ${getAvatarHtml(u, 40)}
+                        </div>
+                        <span>${displayName}</span>
+                    </div>
+                `;
+            }).join("");
+
+            document.getElementById("forwardModal").classList.remove("hidden");
+        }
+
+        function toggleForwardUser(uid, el) {
+            const idx = forwardSelectedUsers.indexOf(uid);
+            const checkbox = document.getElementById("fwd_" + uid);
+
+            if (idx === -1) {
+                forwardSelectedUsers.push(uid);
+                if (checkbox) checkbox.checked = true;
+                el.classList.add("selected");
+            } else {
+                forwardSelectedUsers.splice(idx, 1);
+                if (checkbox) checkbox.checked = false;
+                el.classList.remove("selected");
+            }
+        }
+
+        function closeForwardModal() {
+            document.getElementById("forwardModal").classList.add("hidden");
+            forwardingMessage = null;
+            forwardSelectedUsers = [];
+        }
+
+        async function doForward() {
+            if (!forwardingMessage) return;
+            if (forwardSelectedUsers.length === 0) {
+                showToast("Kam az kam ek user select karein", "error");
+                return;
+            }
+
+            const msg = forwardingMessage;
+
+            for (const uid of forwardSelectedUsers) {
+                const tempId = "temp_" + Date.now() + "_" + uid;
+
+                if (currentChatUser && currentChatUser.uid === uid) {
+                    addMessageToUI({
+                        id: tempId,
+                        sender_id: myUid,
+                        receiver_id: uid,
+                        text: msg.text,
+                        timestamp: new Date().toISOString(),
+                        delivered: false,
+                        read: false,
+                        file_url: msg.file_url,
+                        file_type: msg.file_type,
+                        file_name: msg.file_name
+                    }, true);
+                }
+
+                ws.send(JSON.stringify({
+                    type: "send_message",
+                    data: {
+                        sender_id: myUid,
+                        receiver_id: uid,
+                        text: msg.text || "",
+                        temp_id: tempId,
+                        file_url: msg.file_url || null,
+                        file_type: msg.file_type || null,
+                        file_name: msg.file_name || null
+                    }
+                }));
+            }
+
+            showToast(`${forwardSelectedUsers.length} users ko forward ho gaya`, "success");
+            closeForwardModal();
+        }
+
+        function onTyping() {
+            if (!currentChatUser) return;
+            if (!isTyping) {
+                isTyping = true;
+                ws.send(JSON.stringify({ type: "typing", receiver_id: currentChatUser.uid }));
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isTyping = false;
+                ws.send(JSON.stringify({ type: "stop_typing", receiver_id: currentChatUser.uid }));
+            }, 1500);
+        }
+
+        function showTypingIndicator(name) {
+            const indicator = document.getElementById("typingIndicator");
+            document.getElementById("typingText").textContent = `${name} typing`;
+            indicator.classList.remove("hidden");
+            clearTimeout(hideTypingTimer);
+            hideTypingTimer = setTimeout(hideTypingIndicator, 3000);
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById("typingIndicator").classList.add("hidden");
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 25 * 1024 * 1024) {
+                showToast("File 25MB se bari hai", "error");
+                return;
+            }
+            selectedFile = file;
+            document.getElementById("filePreviewText").textContent = `📎 ${file.name}`;
+            document.getElementById("filePreview").classList.remove("hidden");
+        }
+
+        function clearFile() {
+            selectedFile = null;
+            document.getElementById("fileInput").value = "";
+            document.getElementById("filePreview").classList.add("hidden");
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("msgText");
+            const text = input.value.trim();
+
+            if (!text && !selectedFile) return;
+            if (!currentChatUser) return;
+
+            let fileData = {};
+
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+
+                try {
+                    const res = await fetch(`${API}/upload`, { method: "POST", body: formData });
+                    const data = await res.json();
+                    if (data.success) {
+                        fileData = {
+                            file_url: data.file_url,
+                            file_type: data.file_type,
+                            file_name: data.file_name
+                        };
+                    } else {
+                        showToast("File upload nahi hui", "error");
+                        return;
+                    }
+                } catch (e) {
+                    showToast("Upload error", "error");
+                    return;
+                }
+            }
+
+            const tempId = "temp_" + Date.now();
+
+            addMessageToUI({
+                id: tempId,
+                sender_id: myUid,
+                receiver_id: currentChatUser.uid,
+                text: text,
+                timestamp: new Date().toISOString(),
+                delivered: false,
+                read: false,
+                file_url: fileData.file_url,
+                file_type: fileData.file_type,
+                file_name: fileData.file_name
+            }, true);
+
+            ws.send(JSON.stringify({
+                type: "send_message",
+                data: {
+                    sender_id: myUid,
+                    receiver_id: currentChatUser.uid,
+                    text: text,
+                    temp_id: tempId,
+                    file_url: fileData.file_url,
+                    file_type: fileData.file_type,
+                    file_name: fileData.file_name
+                }
+            }));
+
+            input.value = "";
+            clearFile();
+
+            if (isTyping) {
+                isTyping = false;
+                ws.send(JSON.stringify({ type: "stop_typing", receiver_id: currentChatUser.uid }));
+            }
+        }
+
+        function closeChat() {
+            currentChatUser = null;
+            document.getElementById("chatHeader").innerHTML = `
+                <button class="back-btn" onclick="closeChat()">←</button>
+                <p>Chat select karein</p>
+            `;
+            document.getElementById("messages").innerHTML = '<p class="empty-msg">Chat shuru karne ke liye user select karein</p>';
+            document.getElementById("messageInput").classList.add("hidden");
+            clearFile();
+            document.getElementById("chatArea").classList.remove("active");
+            document.getElementById("sidebar").classList.remove("hidden-mobile");
+            renderChatList();
+        }
+
+        async function handleDpUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const upRes = await fetch(`${API}/upload`, { method: "POST", body: formData });
+                const upData = await upRes.json();
+
+                if (upData.success) {
+                    const res = await fetch(`${API}/update-dp`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ user_id: myUid, dp_url: upData.file_url })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        localStorage.setItem("dp_url", data.dp_url);
+                        myDp = data.dp_url;
+                        setMyAvatar();
+                        showToast("DP update ho gayi", "success");
+                    }
+                }
+            } catch (e) {
+                showToast("DP upload error", "error");
+            }
+        }
+
+        function openUsernameModal() {
+            document.getElementById("newUsername").value = myUsername;
+            document.getElementById("usernameModal").classList.remove("hidden");
+        }
+        function closeUsernameModal() {
+            document.getElementById("usernameModal").classList.add("hidden");
+        }
+
+        async function updateUsername() {
+            const newName = document.getElementById("newUsername").value.trim();
+            if (!newName) return;
+            try {
+                const res = await fetch(`${API}/update-username`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: myUid, new_username: newName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeUsernameModal();
+                    showToast("Username update ho gaya", "success");
+                }
+            } catch (e) {
+                showToast("Error", "error");
+            }
+        }
+
+        function openSaveContact() {
+            if (!currentChatUser) return;
+            const defaultName = savedContacts[currentChatUser.uid] || currentChatUser.username;
+            document.getElementById("contactSavedName").value = defaultName;
+            document.getElementById("saveContactInfo").textContent = `${currentChatUser.username} ko kis naam se save karna hai?`;
+            document.getElementById("saveContactModal").classList.remove("hidden");
+        }
+        function closeSaveContact() {
+            document.getElementById("saveContactModal").classList.add("hidden");
+        }
+
+        async function saveContact() {
+            const savedName = document.getElementById("contactSavedName").value.trim();
+            if (!savedName) return;
+            try {
+                const res = await fetch(`${API}/save-contact`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ owner_id: myUid, contact_id: currentChatUser.uid, saved_name: savedName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    savedContacts[currentChatUser.uid] = savedName;
+                    closeSaveContact();
+                    renderChatHeader();
+                    renderChatList();
+                    showToast("Contact save ho gaya", "success");
+                }
+            } catch (e) {
+                showToast("Error", "error");
+            }
+        }
+
+        function confirmDelete() {
+            document.getElementById("deleteModal").classList.remove("hidden");
+        }
+        function closeDeleteModal() {
+            document.getElementById("deleteModal").classList.add("hidden");
+        }
+
+        async function deleteAccount() {
+            try {
+                const res = await fetch(`${API}/delete-account`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: myUid })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.clear();
+                    showToast("Account delete ho gaya", "success");
+                    setTimeout(() => window.location.href = "/", 1500);
+                }
+            } catch (e) {
+                showToast("Error", "error");
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>
