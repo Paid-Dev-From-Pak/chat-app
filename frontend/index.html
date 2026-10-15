@@ -17,7 +17,6 @@
                 <button id="registerTab" class="tab" onclick="showRegister()">Register</button>
             </div>
 
-            <!-- LOGIN FORM -->
             <div id="loginForm" class="form-section">
                 <input type="email" id="loginEmail" placeholder="Email" required>
                 <div class="password-wrapper">
@@ -29,7 +28,6 @@
                 <p id="loginError" class="error-msg"></p>
             </div>
 
-            <!-- REGISTER FORM -->
             <div id="registerForm" class="form-section hidden">
                 <input type="text" id="regUsername" placeholder="Username" required>
                 <input type="email" id="regEmail" placeholder="Email" required>
@@ -45,21 +43,10 @@
                 <p id="registerError" class="error-msg"></p>
             </div>
 
-            <!-- FORGOT PASSWORD FORM -->
             <div id="forgotForm" class="form-section hidden">
-                <p class="info-text">Email daalein, hum aapko OTP bhejenge</p>
+                <p class="info-text">Email daalein, hum aapko Magic Link bhejenge</p>
                 <input type="email" id="forgotEmail" placeholder="Aapki email" required>
-                <button class="btn-primary" onclick="sendForgotOTP()">Send OTP</button>
-
-                <div id="resetSection" class="hidden">
-                    <input type="text" id="resetOTP" placeholder="6-digit OTP" maxlength="6">
-                    <div class="password-wrapper">
-                        <input type="password" id="resetNewPassword" placeholder="Naya password" required>
-                        <button type="button" class="eye-btn" onclick="togglePassword('resetNewPassword')">👁️</button>
-                    </div>
-                    <button class="btn-primary" onclick="resetPassword()">Reset Password</button>
-                </div>
-
+                <button class="btn-primary" onclick="sendMagicLink()">Send Magic Link</button>
                 <p class="forgot-link" onclick="showLogin()">← Back to Login</p>
                 <p id="forgotError" class="error-msg"></p>
             </div>
@@ -135,7 +122,6 @@
             document.getElementById("forgotForm").classList.remove("hidden");
             document.getElementById("loginTab").classList.remove("active");
             document.getElementById("registerTab").classList.remove("active");
-            document.getElementById("resetSection").classList.add("hidden");
             document.getElementById("forgotError").textContent = "";
         };
 
@@ -201,58 +187,24 @@
             }
         };
 
-        window.sendForgotOTP = async function() {
+        window.sendMagicLink = async function() {
             const email = document.getElementById("forgotEmail").value.trim();
             if (!email) {
                 document.getElementById("forgotError").textContent = "Email daalein";
                 return;
             }
             try {
-                const res = await fetch(`${API}/forgot-password`, {
+                const res = await fetch(`${API}/send-magic-link`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    document.getElementById("forgotError").textContent = "";
-                    document.getElementById("resetSection").classList.remove("hidden");
-                    if (data.otp_debug) {
-                        document.getElementById("forgotError").textContent = "Email fail. OTP: " + data.otp_debug;
-                    } else {
-                        document.getElementById("forgotError").textContent = "OTP email par bhej diya gaya";
-                        document.getElementById("forgotError").style.color = "green";
-                    }
-                } else {
-                    document.getElementById("forgotError").textContent = data.detail || "Error";
-                }
-            } catch (e) {
-                document.getElementById("forgotError").textContent = "Server error";
-            }
-        };
-
-        window.resetPassword = async function() {
-            const email = document.getElementById("forgotEmail").value.trim();
-            const otp = document.getElementById("resetOTP").value.trim();
-            const newPassword = document.getElementById("resetNewPassword").value;
-            if (!otp || !newPassword) {
-                document.getElementById("forgotError").textContent = "OTP aur naya password dein";
-                return;
-            }
-            try {
-                const res = await fetch(`${API}/reset-password`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, otp, new_password: newPassword })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById("forgotError").textContent = "Password reset ho gaya! Ab login karein";
+                    document.getElementById("forgotError").textContent = "Magic link email par bhej diya gaya! Inbox check karein.";
                     document.getElementById("forgotError").style.color = "green";
-                    setTimeout(() => showLogin(), 2000);
                 } else {
                     document.getElementById("forgotError").textContent = data.detail || "Error";
-                    document.getElementById("forgotError").style.color = "red";
                 }
             } catch (e) {
                 document.getElementById("forgotError").textContent = "Server error";

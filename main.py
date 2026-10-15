@@ -9,12 +9,9 @@ import json
 import os
 import shutil
 import uuid
-import random
-import string
-import smtplib
-from email.mime.text import MIMEText
 
 from firebase_config import db, auth_client
+from firebase_admin import auth as admin_auth
 
 app = FastAPI(title="Chat App API")
 
@@ -30,28 +27,6 @@ PKT = timezone(timedelta(hours=5))
 
 def now_pkt():
     return datetime.now(PKT).isoformat()
-
-EMAIL_SENDER = os.environ.get("EMAIL_SENDER", "")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
-
-def send_email_otp(to_email: str, otp: str):
-    if not EMAIL_SENDER or not EMAIL_PASSWORD:
-        print("Email credentials nahi mile")
-        return False
-    try:
-        msg = MIMEText(f"Aapka password reset OTP hai: {otp}\n\nYeh 10 minute tak valid hai.")
-        msg["Subject"] = "Chat App - Password Reset OTP"
-        msg["From"] = EMAIL_SENDER
-        msg["To"] = to_email
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_SENDER, to_email, msg.as_string())
-        server.quit()
-        return True
-    except Exception as e:
-        print(f"Email error: {e}")
-        return False
 
 # ============ MODELS ============
 class UserRegister(BaseModel):
@@ -96,11 +71,6 @@ class SaveContact(BaseModel):
 
 class ForgotPassword(BaseModel):
     email: str
-
-class ResetPassword(BaseModel):
-    email: str
-    otp: str
-    new_password: str
 
 # ============ CONNECTION MANAGER ============
 class ConnectionManager:
@@ -200,8 +170,9 @@ def login(user: UserLogin):
         "dp_url": user_data.get("dp_url", "")
     }
 
-@app.post("/forgot-password")
-def forgot_password(data: ForgotPassword):
+# ---- MAGIC LINK ----
+@app.post("/send-magic-link")
+def send_magic_link(data: ForgotPassword):
     users = db.collection("users").where("email", "==", data.email).stream()
     user_data = None
     for u in users:
@@ -209,42 +180,21 @@ def forgot_password(data: ForgotPassword):
         break
     if not user_data:
         raise HTTPException(status_code=404, detail="Yeh email register nahi hai")
-    otp = ''.join(random.choices(string.digits, k=6))
-    db.collection("password_resets").document(data.email).set({
-        "email": data.email,
-        "otp": otp,
-        "expires_at": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
-        "created_at": now_pkt()
-    })
-    sent = send_email_otp(data.email, otp)
-    if not sent:
-        return {"success": True, "message": "Email fail hua", "otp_debug": otp}
-    return {"success": True, "message": "OTP aapki email par bhej diya gaya"}
 
-@app.post("/reset-password")
-def reset_password(data: ResetPassword):
-    reset_doc = db.collection("password_resets").document(data.email).get()
-    if not reset_doc.exists:
-        raise HTTPException(status_code=400, detail="OTP nahi mila. Dobara request karein")
-    reset_data = reset_doc.to_dict()
-    expires_at = datetime.fromisoformat(reset_data["expires_at"])
-    if datetime.utcnow() > expires_at:
-        raise HTTPException(status_code=400, detail="OTP expire ho gaya")
-    if reset_data["otp"] != data.otp:
-        raise HTTPException(status_code=400, detail="Ghalat OTP")
-    users = db.collection("users").where("email", "==", data.email).stream()
-    user_uid = None
-    for u in users:
-        user_uid = u.to_dict()["uid"]
-        break
-    if not user_uid:
-        raise HTTPException(status_code=404, detail="User nahi mila")
     try:
-        auth_client.update_user(user_uid, password=data.new_password)
+        action_code_settings = admin_auth.ActionCodeSettings(
+            url="https://chat-app-awa9.onrender.com/reset",
+            handle_code_in_app=False
+        )
+        link = admin_auth.generate_sign_in_with_email_link(
+            data.email,
+            action_code_settings
+        )
+        print(f"Magic link: {link}")
+        return {"success": True, "message": "Magic link aapki email par bhej diya gaya"}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    db.collection("password_resets").document(data.email).delete()
-    return {"success": True, "message": "Password reset ho gaya"}
+        print(f"Magic link error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/find-user/{email}")
 def find_user(email: str):
@@ -567,3 +517,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 @app.get("/chat")
 def chat_page():
     return FileResponse(os.path.join(frontend_path, "chat.html"))
+
+@app.get("/reset")
+def reset_page():
+    return FileResponse(os.path.join(frontend_path, "reset.html"))
