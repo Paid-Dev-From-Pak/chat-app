@@ -11,7 +11,6 @@ import shutil
 import uuid
 
 from firebase_config import db, auth_client
-from firebase_admin import auth as admin_auth
 
 app = FastAPI(title="Chat App API")
 
@@ -38,7 +37,6 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
-    id_token: str = None
 
 class MessageSend(BaseModel):
     sender_id: str
@@ -68,9 +66,6 @@ class SaveContact(BaseModel):
     owner_id: str
     contact_id: str
     saved_name: str
-
-class ForgotPassword(BaseModel):
-    email: str
 
 # ============ CONNECTION MANAGER ============
 class ConnectionManager:
@@ -169,25 +164,6 @@ def login(user: UserLogin):
         "phone": user_data.get("phone", ""),
         "dp_url": user_data.get("dp_url", "")
     }
-
-# ---- PASSWORD RESET LINK ----
-@app.post("/send-magic-link")
-def send_magic_link(data: ForgotPassword):
-    users = db.collection("users").where("email", "==", data.email).stream()
-    user_data = None
-    for u in users:
-        user_data = u.to_dict()
-        break
-    if not user_data:
-        raise HTTPException(status_code=404, detail="Yeh email register nahi hai")
-
-    try:
-        # Yeh email khud bhejta hai (Firebase default template ke saath)
-        admin_auth.generate_password_reset_link(data.email)
-        return {"success": True, "message": "Password reset link aapki email par bhej diya gaya"}
-    except Exception as e:
-        print(f"Reset error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/find-user/{email}")
 def find_user(email: str):
@@ -510,7 +486,3 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 @app.get("/chat")
 def chat_page():
     return FileResponse(os.path.join(frontend_path, "chat.html"))
-
-@app.get("/reset")
-def reset_page():
-    return FileResponse(os.path.join(frontend_path, "reset.html"))

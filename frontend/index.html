@@ -17,23 +17,24 @@
                 <button id="registerTab" class="tab" onclick="showRegister()">Register</button>
             </div>
 
+            <!-- LOGIN FORM -->
             <div id="loginForm" class="form-section">
                 <input type="email" id="loginEmail" placeholder="Email" required>
                 <div class="password-wrapper">
                     <input type="password" id="loginPassword" placeholder="Password" required>
-                    <button type="button" class="eye-btn" onclick="togglePassword('loginPassword')">👁️</button>
+                    <button type="button" class="eye-btn" onclick="togglePassword('loginPassword', this)">👁️</button>
                 </div>
                 <button class="btn-primary" onclick="loginUser()">Login</button>
-                <p class="forgot-link" onclick="showForgot()">Forgot Password?</p>
                 <p id="loginError" class="error-msg"></p>
             </div>
 
+            <!-- REGISTER FORM -->
             <div id="registerForm" class="form-section hidden">
                 <input type="text" id="regUsername" placeholder="Username" required>
                 <input type="email" id="regEmail" placeholder="Email" required>
                 <div class="password-wrapper">
                     <input type="password" id="regPassword" placeholder="Password" required>
-                    <button type="button" class="eye-btn" onclick="togglePassword('regPassword')">👁️</button>
+                    <button type="button" class="eye-btn" onclick="togglePassword('regPassword', this)">👁️</button>
                 </div>
                 <div class="phone-input-group">
                     <select id="regCountryCode" class="country-select"></select>
@@ -42,33 +43,10 @@
                 <button class="btn-primary" onclick="registerUser()">Register</button>
                 <p id="registerError" class="error-msg"></p>
             </div>
-
-            <div id="forgotForm" class="form-section hidden">
-                <p class="info-text">Email daalein, hum aapko reset link bhejenge</p>
-                <input type="email" id="forgotEmail" placeholder="Aapki email" required>
-                <button class="btn-primary" onclick="sendPasswordReset()">Send Reset Link</button>
-                <p class="forgot-link" onclick="showLogin()">← Back to Login</p>
-                <p id="forgotError" class="error-msg"></p>
-            </div>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCIO8IbZzQMwY27QU5hJENKlWwHDI8NBDA",
-            authDomain: "chat-app-2e5d3.firebaseapp.com",
-            projectId: "chat-app-2e5d3",
-            storageBucket: "chat-app-2e5d3.firebasestorage.app",
-            messagingSenderId: "842207618087",
-            appId: "1:842207618087:web:e3d5aefaefffe2b01b5a02"
-        };
-
-        const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-        const firebaseAuth = getAuth(firebaseApp);
-
+    <script>
         const API = "https://chat-app-awa9.onrender.com";
 
         const COUNTRIES = [
@@ -110,15 +88,21 @@
         }
         populateCountryDropdown();
 
-        window.togglePassword = function(inputId) {
+        // ===== PASSWORD EYE TOGGLE (Improved) =====
+        window.togglePassword = function(inputId, btn) {
             const input = document.getElementById(inputId);
-            input.type = input.type === "password" ? "text" : "password";
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "🙈";
+            } else {
+                input.type = "password";
+                btn.textContent = "👁️";
+            }
         };
 
         window.showLogin = function() {
             document.getElementById("loginForm").classList.remove("hidden");
             document.getElementById("registerForm").classList.add("hidden");
-            document.getElementById("forgotForm").classList.add("hidden");
             document.getElementById("loginTab").classList.add("active");
             document.getElementById("registerTab").classList.remove("active");
         };
@@ -126,18 +110,8 @@
         window.showRegister = function() {
             document.getElementById("loginForm").classList.add("hidden");
             document.getElementById("registerForm").classList.remove("hidden");
-            document.getElementById("forgotForm").classList.add("hidden");
             document.getElementById("registerTab").classList.add("active");
             document.getElementById("loginTab").classList.remove("active");
-        };
-
-        window.showForgot = function() {
-            document.getElementById("loginForm").classList.add("hidden");
-            document.getElementById("registerForm").classList.add("hidden");
-            document.getElementById("forgotForm").classList.remove("hidden");
-            document.getElementById("loginTab").classList.remove("active");
-            document.getElementById("registerTab").classList.remove("active");
-            document.getElementById("forgotError").textContent = "";
         };
 
         window.registerUser = async function() {
@@ -146,11 +120,14 @@
             const password = document.getElementById("regPassword").value;
             const countryCode = document.getElementById("regCountryCode").value;
             const phoneLocal = document.getElementById("regPhone").value.trim();
+
             if (!username || !email || !password || !phoneLocal) {
                 document.getElementById("registerError").textContent = "Sab fields bharein";
                 return;
             }
+
             const fullPhone = countryCode + phoneLocal.replace(/^0+/, "");
+
             try {
                 const res = await fetch(`${API}/register`, {
                     method: "POST",
@@ -158,6 +135,7 @@
                     body: JSON.stringify({ username, email, password, phone: fullPhone })
                 });
                 const data = await res.json();
+
                 if (data.success) {
                     localStorage.setItem("uid", data.uid);
                     localStorage.setItem("username", username);
@@ -176,10 +154,12 @@
         window.loginUser = async function() {
             const email = document.getElementById("loginEmail").value.trim();
             const password = document.getElementById("loginPassword").value;
+
             if (!email || !password) {
                 document.getElementById("loginError").textContent = "Email aur password dein";
                 return;
             }
+
             try {
                 const res = await fetch(`${API}/login`, {
                     method: "POST",
@@ -187,6 +167,7 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
+
                 if (data.success) {
                     localStorage.setItem("uid", data.uid);
                     localStorage.setItem("username", data.username);
@@ -199,29 +180,6 @@
                 }
             } catch (e) {
                 document.getElementById("loginError").textContent = "Server error";
-            }
-        };
-
-        window.sendPasswordReset = async function() {
-            const email = document.getElementById("forgotEmail").value.trim();
-            if (!email) {
-                document.getElementById("forgotError").textContent = "Email daalein";
-                return;
-            }
-
-            try {
-                await sendPasswordResetEmail(firebaseAuth, email);
-                document.getElementById("forgotError").textContent = "Password reset email aapki email par bhej di gayi hai! Inbox check karein.";
-                document.getElementById("forgotError").style.color = "green";
-            } catch (e) {
-                if (e.code === "auth/user-not-found") {
-                    document.getElementById("forgotError").textContent = "Yeh email register nahi hai";
-                } else if (e.code === "auth/invalid-email") {
-                    document.getElementById("forgotError").textContent = "Ghalat email";
-                } else {
-                    document.getElementById("forgotError").textContent = "Error: " + e.message;
-                }
-                document.getElementById("forgotError").style.color = "red";
             }
         };
     </script>
