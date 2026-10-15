@@ -138,7 +138,7 @@
 
     <script>
         const API = "https://chat-app-awa9.onrender.com";
-const WS_URL = "wss://chat-app-awa9.onrender.com/ws";
+        const WS_URL = "wss://chat-app-awa9.onrender.com/ws";
 
         let myUid = localStorage.getItem("uid");
         let myUsername = localStorage.getItem("username");
@@ -336,20 +336,14 @@ const WS_URL = "wss://chat-app-awa9.onrender.com/ws";
                 }
 
                 if (data.type === "user_online") {
-                    chatListData.forEach(c => {
-                        if (c.user.uid === data.user_id) c.is_online = true;
-                    });
-                    renderChatList();
+                    loadChatList();
                     if (currentChatUser && currentChatUser.uid === data.user_id) {
                         renderChatHeader();
                     }
                 }
 
                 if (data.type === "user_offline") {
-                    chatListData.forEach(c => {
-                        if (c.user.uid === data.user_id) c.is_online = false;
-                    });
-                    renderChatList();
+                    loadChatList();
                     if (currentChatUser && currentChatUser.uid === data.user_id) {
                         renderChatHeader();
                     }
@@ -541,6 +535,8 @@ const WS_URL = "wss://chat-app-awa9.onrender.com/ws";
             document.getElementById("chatArea").classList.add("active");
             document.getElementById("sidebar").classList.add("hidden-mobile");
 
+            markAsRead(uid);
+
             const res = await fetch(`${API}/messages/${myUid}/${uid}`);
             const data = await res.json();
 
@@ -553,7 +549,6 @@ const WS_URL = "wss://chat-app-awa9.onrender.com/ws";
                 data.messages.forEach(m => addMessageToUI(m, m.sender_id === myUid));
             }
 
-            markAsRead(uid);
             loadChatList();
         }
 
@@ -644,7 +639,6 @@ const WS_URL = "wss://chat-app-awa9.onrender.com/ws";
 
             div.innerHTML = content;
 
-            // Right-click / long press
             div.oncontextmenu = (e) => {
                 e.preventDefault();
                 showMessageMenu(msg);

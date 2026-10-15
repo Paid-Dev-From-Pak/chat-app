@@ -347,7 +347,7 @@ async def send_message(msg: MessageSend):
             "message_id": doc_ref[1].id
         })
 
-    # ---- USER_CHATS UPDATE (Optimization) ----
+    # ---- USER_CHATS UPDATE ----
     for uid in [msg.sender_id, msg.receiver_id]:
         other_uid = msg.receiver_id if uid == msg.sender_id else msg.sender_id
         other_doc = db.collection("users").document(other_uid).get()
@@ -396,9 +396,19 @@ async def mark_read(data: MarkRead):
         .where("read", "==", False).stream()
 
     message_ids = []
+    batch = db.batch()
     for m in messages:
-        m.reference.update({"read": True, "delivered": True})
+        batch.update(m.reference, {"read": True, "delivered": True})
         message_ids.append(m.id)
+
+    if message_ids:
+        batch.commit()
+        await manager.send_to_user(data.sender_id, {
+            "type": "messages_read",
+            "chat_id": chat_id,
+            "reader_id": data.reader_id,
+            "message_ids": message_ids
+        })
 
     # ---- UNREAD COUNT RESET ----
     uc_ref = db.collection("user_chats").document(data.reader_id)
@@ -409,13 +419,6 @@ async def mark_read(data: MarkRead):
             chats_data[data.sender_id]["unread_count"] = 0
             uc_ref.set({"chats": chats_data}, merge=True)
 
-    if message_ids:
-        await manager.send_to_user(data.sender_id, {
-            "type": "messages_read",
-            "chat_id": chat_id,
-            "reader_id": data.reader_id,
-            "message_ids": message_ids
-        })
     return {"success": True, "count": len(message_ids)}
 
 @app.get("/chat-list/{user_id}")
@@ -470,7 +473,6 @@ async def delete_account(data: DeleteAccount):
     for c in contacts:
         c.reference.delete()
 
-    # ---- USER_CHATS DELETE ----
     uc_ref = db.collection("user_chats").document(user_id)
     if uc_ref.get().exists:
         uc_ref.delete()
