@@ -37,6 +37,7 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+    id_token: str = None
 
 class MessageSend(BaseModel):
     sender_id: str
@@ -162,6 +163,15 @@ def login(user: UserLogin):
         break
     if not user_data:
         raise HTTPException(status_code=404, detail="User nahi mila")
+
+    if user.id_token:
+        try:
+            decoded = auth_client.verify_id_token(user.id_token)
+            if decoded["uid"] != user_data["uid"]:
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+        except Exception as e:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
     return {
         "success": True,
         "uid": user_data["uid"],
@@ -337,6 +347,36 @@ async def send_message(msg: MessageSend):
             "message_id": doc_ref[1].id
         })
 
+    # ---- USER_CHATS UPDATE (Optimization) ----
+    for uid in [msg.sender_id, msg.receiver_id]:
+        other_uid = msg.receiver_id if uid == msg.sender_id else msg.sender_id
+        other_doc = db.collection("users").document(other_uid).get()
+        if other_doc.exists:
+            other_data = other_doc.to_dict()
+            uc_ref = db.collection("user_chats").document(uid)
+            uc_doc = uc_ref.get()
+            unread_count = 0
+            if uc_doc.exists:
+                chats_data = uc_doc.to_dict().get("chats", {})
+                if other_uid in chats_data:
+                    unread_count = chats_data[other_uid].get("unread_count", 0)
+                    if uid == msg.receiver_id:
+                        unread_count += 1
+            elif uid == msg.receiver_id:
+                unread_count = 1
+
+            chat_entry = {
+                "other_uid": other_uid,
+                "other_username": other_data.get("username", ""),
+                "other_email": other_data.get("email", ""),
+                "other_dp_url": other_data.get("dp_url", ""),
+                "last_message": msg.text or "[attachment]",
+                "last_timestamp": now_pkt(),
+                "last_sender_id": msg.sender_id,
+                "unread_count": unread_count
+            }
+            uc_ref.set({"chats": {other_uid: chat_entry}}, merge=True)
+
     return {"success": True, "message_id": doc_ref[1].id}
 
 @app.get("/messages/{user1}/{user2}")
@@ -360,6 +400,15 @@ async def mark_read(data: MarkRead):
         m.reference.update({"read": True, "delivered": True})
         message_ids.append(m.id)
 
+    # ---- UNREAD COUNT RESET ----
+    uc_ref = db.collection("user_chats").document(data.reader_id)
+    uc_doc = uc_ref.get()
+    if uc_doc.exists:
+        chats_data = uc_doc.to_dict().get("chats", {})
+        if data.sender_id in chats_data:
+            chats_data[data.sender_id]["unread_count"] = 0
+            uc_ref.set({"chats": chats_data}, merge=True)
+
     if message_ids:
         await manager.send_to_user(data.sender_id, {
             "type": "messages_read",
@@ -371,38 +420,28 @@ async def mark_read(data: MarkRead):
 
 @app.get("/chat-list/{user_id}")
 def get_chat_list(user_id: str):
-    chats = db.collection("chats").stream()
+    uc_doc = db.collection("user_chats").document(user_id).get()
+    if not uc_doc.exists:
+        return {"chats": []}
+
+    chats_data = uc_doc.to_dict().get("chats", {})
     result = []
-    for chat in chats:
-        chat_id = chat.id
-        if user_id not in chat_id.split("_"):
-            continue
-        parts = chat_id.split("_")
-        other_uid = parts[0] if parts[1] == user_id else parts[1]
-        other_doc = db.collection("users").document(other_uid).get()
-        if not other_doc.exists:
-            continue
-        other_user = other_doc.to_dict()
-
-        latest = db.collection("chats").document(chat_id).collection("messages")\
-            .order_by("timestamp", direction="DESCENDING").limit(1).stream()
-        latest_msg = None
-        for m in latest:
-            latest_msg = m.to_dict() | {"id": m.id}
-            break
-
-        unread = db.collection("chats").document(chat_id).collection("messages")\
-            .where("receiver_id", "==", user_id)\
-            .where("read", "==", False).stream()
-        unread_count = sum(1 for _ in unread)
-
-        if latest_msg:
-            result.append({
-                "user": other_user,
-                "latest_message": latest_msg,
-                "unread_count": unread_count,
-                "is_online": manager.is_online(other_uid)
-            })
+    for other_uid, entry in chats_data.items():
+        result.append({
+            "user": {
+                "uid": entry["other_uid"],
+                "username": entry["other_username"],
+                "email": entry["other_email"],
+                "dp_url": entry.get("other_dp_url", "")
+            },
+            "latest_message": {
+                "text": entry["last_message"],
+                "timestamp": entry["last_timestamp"],
+                "sender_id": entry["last_sender_id"]
+            },
+            "unread_count": entry.get("unread_count", 0),
+            "is_online": manager.is_online(other_uid)
+        })
 
     result.sort(key=lambda x: x["latest_message"]["timestamp"], reverse=True)
     return {"chats": result}
@@ -430,6 +469,11 @@ async def delete_account(data: DeleteAccount):
     contacts = db.collection("contacts").document(user_id).collection("saved").stream()
     for c in contacts:
         c.reference.delete()
+
+    # ---- USER_CHATS DELETE ----
+    uc_ref = db.collection("user_chats").document(user_id)
+    if uc_ref.get().exists:
+        uc_ref.delete()
 
     db.collection("users").document(user_id).delete()
     try:
