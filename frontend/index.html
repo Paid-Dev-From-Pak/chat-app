@@ -44,16 +44,31 @@
             </div>
 
             <div id="forgotForm" class="form-section hidden">
-                <p class="info-text">Email daalein, hum aapko Magic Link bhejenge</p>
+                <p class="info-text">Email daalein, hum aapko reset link bhejenge</p>
                 <input type="email" id="forgotEmail" placeholder="Aapki email" required>
-                <button class="btn-primary" onclick="sendMagicLink()">Send Magic Link</button>
+                <button class="btn-primary" onclick="sendPasswordReset()">Send Reset Link</button>
                 <p class="forgot-link" onclick="showLogin()">← Back to Login</p>
                 <p id="forgotError" class="error-msg"></p>
             </div>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIO8IbZzQMwY27QU5hJENKlWwHDI8NBDA",
+            authDomain: "chat-app-2e5d3.firebaseapp.com",
+            projectId: "chat-app-2e5d3",
+            storageBucket: "chat-app-2e5d3.firebasestorage.app",
+            messagingSenderId: "842207618087",
+            appId: "1:842207618087:web:e3d5aefaefffe2b01b5a02"
+        };
+
+        const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+        const firebaseAuth = getAuth(firebaseApp);
+
         const API = "https://chat-app-awa9.onrender.com";
 
         const COUNTRIES = [
@@ -187,27 +202,26 @@
             }
         };
 
-        window.sendMagicLink = async function() {
+        window.sendPasswordReset = async function() {
             const email = document.getElementById("forgotEmail").value.trim();
             if (!email) {
                 document.getElementById("forgotError").textContent = "Email daalein";
                 return;
             }
+
             try {
-                const res = await fetch(`${API}/send-magic-link`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById("forgotError").textContent = "Magic link email par bhej diya gaya! Inbox check karein.";
-                    document.getElementById("forgotError").style.color = "green";
-                } else {
-                    document.getElementById("forgotError").textContent = data.detail || "Error";
-                }
+                await sendPasswordResetEmail(firebaseAuth, email);
+                document.getElementById("forgotError").textContent = "Password reset email aapki email par bhej di gayi hai! Inbox check karein.";
+                document.getElementById("forgotError").style.color = "green";
             } catch (e) {
-                document.getElementById("forgotError").textContent = "Server error";
+                if (e.code === "auth/user-not-found") {
+                    document.getElementById("forgotError").textContent = "Yeh email register nahi hai";
+                } else if (e.code === "auth/invalid-email") {
+                    document.getElementById("forgotError").textContent = "Ghalat email";
+                } else {
+                    document.getElementById("forgotError").textContent = "Error: " + e.message;
+                }
+                document.getElementById("forgotError").style.color = "red";
             }
         };
     </script>
