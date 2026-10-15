@@ -9,6 +9,10 @@ import json
 import os
 import shutil
 import uuid
+import random
+import string
+import smtplib
+from email.mime.text import MIMEText
 
 from firebase_config import db, auth_client
 
@@ -26,6 +30,28 @@ PKT = timezone(timedelta(hours=5))
 
 def now_pkt():
     return datetime.now(PKT).isoformat()
+
+EMAIL_SENDER = os.environ.get("EMAIL_SENDER", "")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
+
+def send_email_otp(to_email: str, otp: str):
+    if not EMAIL_SENDER or not EMAIL_PASSWORD:
+        print("Email credentials nahi mile")
+        return False
+    try:
+        msg = MIMEText(f"Aapka password reset OTP hai: {otp}\n\nYeh 10 minute tak valid hai.")
+        msg["Subject"] = "Chat App - Password Reset OTP"
+        msg["From"] = EMAIL_SENDER
+        msg["To"] = to_email
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.sendmail(EMAIL_SENDER, to_email, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Email error: {e}")
+        return False
 
 # ============ MODELS ============
 class UserRegister(BaseModel):
@@ -68,6 +94,14 @@ class SaveContact(BaseModel):
     contact_id: str
     saved_name: str
 
+class ForgotPassword(BaseModel):
+    email: str
+
+class ResetPassword(BaseModel):
+    email: str
+    otp: str
+    new_password: str
+
 # ============ CONNECTION MANAGER ============
 class ConnectionManager:
     def __init__(self):
@@ -76,13 +110,11 @@ class ConnectionManager:
     async def connect(self, user_id: str, websocket: WebSocket):
         await websocket.accept()
         self.active_connections[user_id] = websocket
-        print(f"User connected: {user_id}")
         await self.broadcast({"type": "user_online", "user_id": user_id})
 
     def disconnect(self, user_id: str):
         if user_id in self.active_connections:
             del self.active_connections[user_id]
-            print(f"User disconnected: {user_id}")
 
     async def send_to_user(self, user_id: str, message: dict):
         if user_id in self.active_connections:
@@ -90,7 +122,6 @@ class ConnectionManager:
                 await self.active_connections[user_id].send_text(json.dumps(message))
                 return True
             except Exception as e:
-                print(f"Send error: {e}")
                 self.disconnect(user_id)
                 return False
         return False
@@ -116,7 +147,6 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# ============ UPLOAD FOLDER ============
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -134,7 +164,6 @@ def register(user: UserRegister):
         existing = db.collection("users").where("phone", "==", phone_clean).stream()
         for e in existing:
             raise HTTPException(status_code=400, detail="Yeh phone number pehle se register hai")
-
         firebase_user = auth_client.create_user(
             email=user.email,
             password=user.password,
@@ -163,15 +192,6 @@ def login(user: UserLogin):
         break
     if not user_data:
         raise HTTPException(status_code=404, detail="User nahi mila")
-
-    if user.id_token:
-        try:
-            decoded = auth_client.verify_id_token(user.id_token)
-            if decoded["uid"] != user_data["uid"]:
-                raise HTTPException(status_code=401, detail="Invalid credentials")
-        except Exception as e:
-            raise HTTPException(status_code=401, detail="Invalid token")
-
     return {
         "success": True,
         "uid": user_data["uid"],
@@ -179,6 +199,52 @@ def login(user: UserLogin):
         "phone": user_data.get("phone", ""),
         "dp_url": user_data.get("dp_url", "")
     }
+
+@app.post("/forgot-password")
+def forgot_password(data: ForgotPassword):
+    users = db.collection("users").where("email", "==", data.email).stream()
+    user_data = None
+    for u in users:
+        user_data = u.to_dict()
+        break
+    if not user_data:
+        raise HTTPException(status_code=404, detail="Yeh email register nahi hai")
+    otp = ''.join(random.choices(string.digits, k=6))
+    db.collection("password_resets").document(data.email).set({
+        "email": data.email,
+        "otp": otp,
+        "expires_at": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
+        "created_at": now_pkt()
+    })
+    sent = send_email_otp(data.email, otp)
+    if not sent:
+        return {"success": True, "message": "Email fail hua", "otp_debug": otp}
+    return {"success": True, "message": "OTP aapki email par bhej diya gaya"}
+
+@app.post("/reset-password")
+def reset_password(data: ResetPassword):
+    reset_doc = db.collection("password_resets").document(data.email).get()
+    if not reset_doc.exists:
+        raise HTTPException(status_code=400, detail="OTP nahi mila. Dobara request karein")
+    reset_data = reset_doc.to_dict()
+    expires_at = datetime.fromisoformat(reset_data["expires_at"])
+    if datetime.utcnow() > expires_at:
+        raise HTTPException(status_code=400, detail="OTP expire ho gaya")
+    if reset_data["otp"] != data.otp:
+        raise HTTPException(status_code=400, detail="Ghalat OTP")
+    users = db.collection("users").where("email", "==", data.email).stream()
+    user_uid = None
+    for u in users:
+        user_uid = u.to_dict()["uid"]
+        break
+    if not user_uid:
+        raise HTTPException(status_code=404, detail="User nahi mila")
+    try:
+        auth_client.update_user(user_uid, password=data.new_password)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    db.collection("password_resets").document(data.email).delete()
+    return {"success": True, "message": "Password reset ho gaya"}
 
 @app.get("/find-user/{email}")
 def find_user(email: str):
@@ -255,10 +321,8 @@ async def upload_file(file: UploadFile = File(...)):
         ext = os.path.splitext(file.filename)[1]
         unique_name = f"{uuid.uuid4().hex}{ext}"
         file_path = os.path.join(UPLOAD_DIR, unique_name)
-
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-
         content_type = file.content_type or ""
         if content_type.startswith("image"):
             file_type = "image"
@@ -268,7 +332,6 @@ async def upload_file(file: UploadFile = File(...)):
             file_type = "audio"
         else:
             file_type = "file"
-
         return {
             "success": True,
             "file_url": f"/uploads/{unique_name}",
@@ -291,7 +354,6 @@ async def send_message(msg: MessageSend):
     if not sender_doc.exists:
         await manager.close_user(msg.sender_id)
         raise HTTPException(status_code=401, detail="User deleted")
-
     chat_id = "_".join(sorted([msg.sender_id, msg.receiver_id]))
     chat_ref = db.collection("chats").document(chat_id)
     chat_doc = chat_ref.get()
@@ -308,7 +370,6 @@ async def send_message(msg: MessageSend):
             "last_message": msg.text or "[attachment]",
             "last_timestamp": now_pkt()
         })
-
     message_data = {
         "sender_id": msg.sender_id,
         "receiver_id": msg.receiver_id,
@@ -320,19 +381,15 @@ async def send_message(msg: MessageSend):
         "file_type": msg.file_type,
         "file_name": msg.file_name
     }
-
     doc_ref = chat_ref.collection("messages").add(message_data)
     full_message = message_data | {"id": doc_ref[1].id}
-
     await manager.send_to_user(msg.sender_id, {
         "type": "message_sent",
         "chat_id": chat_id,
         "message": full_message,
         "temp_id": msg.temp_id
     })
-
     receiver_online = manager.is_online(msg.receiver_id)
-
     if receiver_online:
         doc_ref[1].update({"delivered": True})
         full_message["delivered"] = True
@@ -346,8 +403,6 @@ async def send_message(msg: MessageSend):
             "chat_id": chat_id,
             "message_id": doc_ref[1].id
         })
-
-    # ---- USER_CHATS UPDATE ----
     for uid in [msg.sender_id, msg.receiver_id]:
         other_uid = msg.receiver_id if uid == msg.sender_id else msg.sender_id
         other_doc = db.collection("users").document(other_uid).get()
@@ -364,7 +419,6 @@ async def send_message(msg: MessageSend):
                         unread_count += 1
             elif uid == msg.receiver_id:
                 unread_count = 1
-
             chat_entry = {
                 "other_uid": other_uid,
                 "other_username": other_data.get("username", ""),
@@ -376,7 +430,6 @@ async def send_message(msg: MessageSend):
                 "unread_count": unread_count
             }
             uc_ref.set({"chats": {other_uid: chat_entry}}, merge=True)
-
     return {"success": True, "message_id": doc_ref[1].id}
 
 @app.get("/messages/{user1}/{user2}")
@@ -394,13 +447,11 @@ async def mark_read(data: MarkRead):
         .where("receiver_id", "==", data.reader_id)\
         .where("sender_id", "==", data.sender_id)\
         .where("read", "==", False).stream()
-
     message_ids = []
     batch = db.batch()
     for m in messages:
         batch.update(m.reference, {"read": True, "delivered": True})
         message_ids.append(m.id)
-
     if message_ids:
         batch.commit()
         await manager.send_to_user(data.sender_id, {
@@ -409,8 +460,6 @@ async def mark_read(data: MarkRead):
             "reader_id": data.reader_id,
             "message_ids": message_ids
         })
-
-    # ---- UNREAD COUNT RESET ----
     uc_ref = db.collection("user_chats").document(data.reader_id)
     uc_doc = uc_ref.get()
     if uc_doc.exists:
@@ -418,7 +467,6 @@ async def mark_read(data: MarkRead):
         if data.sender_id in chats_data:
             chats_data[data.sender_id]["unread_count"] = 0
             uc_ref.set({"chats": chats_data}, merge=True)
-
     return {"success": True, "count": len(message_ids)}
 
 @app.get("/chat-list/{user_id}")
@@ -426,7 +474,6 @@ def get_chat_list(user_id: str):
     uc_doc = db.collection("user_chats").document(user_id).get()
     if not uc_doc.exists:
         return {"chats": []}
-
     chats_data = uc_doc.to_dict().get("chats", {})
     result = []
     for other_uid, entry in chats_data.items():
@@ -445,7 +492,6 @@ def get_chat_list(user_id: str):
             "unread_count": entry.get("unread_count", 0),
             "is_online": manager.is_online(other_uid)
         })
-
     result.sort(key=lambda x: x["latest_message"]["timestamp"], reverse=True)
     return {"chats": result}
 
@@ -459,7 +505,6 @@ async def delete_account(data: DeleteAccount):
     user_doc = db.collection("users").document(user_id).get()
     if not user_doc.exists:
         raise HTTPException(status_code=404, detail="User nahi mila")
-
     chats = db.collection("chats").stream()
     for chat in chats:
         chat_id = chat.id
@@ -468,32 +513,26 @@ async def delete_account(data: DeleteAccount):
             for m in messages:
                 m.reference.delete()
             db.collection("chats").document(chat_id).delete()
-
     contacts = db.collection("contacts").document(user_id).collection("saved").stream()
     for c in contacts:
         c.reference.delete()
-
     uc_ref = db.collection("user_chats").document(user_id)
     if uc_ref.get().exists:
         uc_ref.delete()
-
     db.collection("users").document(user_id).delete()
     try:
         auth_client.delete_user(user_id)
     except Exception as e:
         print(f"Auth delete error: {e}")
-
     await manager.close_user(user_id)
     return {"success": True, "message": "Account delete ho gaya"}
 
-# ============ WEBSOCKET ============
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     user_doc = db.collection("users").document(user_id).get()
     if not user_doc.exists:
         await websocket.close(code=1008, reason="User not found")
         return
-
     await manager.connect(user_id, websocket)
     try:
         while True:
@@ -504,7 +543,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
                 manager.disconnect(user_id)
                 return
             payload = json.loads(data)
-
             if payload.get("type") == "send_message":
                 msg = MessageSend(**payload["data"])
                 await send_message(msg)
@@ -521,11 +559,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
         print(f"Error: {e}")
         manager.disconnect(user_id)
 
-# ============ FRONTEND ============
 frontend_path = os.path.join(BASE_DIR, "frontend")
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
-
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/chat")

@@ -21,14 +21,11 @@
                     <button class="delete-btn" onclick="confirmDelete()">🗑️</button>
                 </div>
             </div>
-
             <input type="file" id="dpInput" style="display:none" accept="image/*" onchange="handleDpUpload(event)">
-
             <div class="search-box">
                 <input type="text" id="searchUser" placeholder="Email ya phone...">
                 <button onclick="searchUser()">🔍</button>
             </div>
-
             <div class="chat-list" id="chatList">
                 <p class="empty-msg">Koi chat nahi. User dhoondein.</p>
             </div>
@@ -39,23 +36,19 @@
                 <button class="back-btn" onclick="closeChat()">←</button>
                 <p>Chat select karein</p>
             </div>
-
             <div class="messages" id="messages">
                 <p class="empty-msg">Chat shuru karne ke liye user select karein</p>
             </div>
-
             <div class="typing-indicator hidden" id="typingIndicator">
                 <span id="typingText">typing</span>
                 <span class="dot"></span>
                 <span class="dot"></span>
                 <span class="dot"></span>
             </div>
-
             <div class="file-preview hidden" id="filePreview">
                 <span id="filePreviewText"></span>
                 <button onclick="clearFile()">✖️</button>
             </div>
-
             <div class="message-input hidden" id="messageInput">
                 <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
                 <input type="file" id="fileInput" style="display:none" 
@@ -97,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Delete Account Modal -->
+    <!-- Delete Modal -->
     <div class="modal-overlay hidden" id="deleteModal">
         <div class="modal-box">
             <h3>⚠️ Account Delete Karein?</h3>
@@ -143,9 +136,7 @@
         let myUid = localStorage.getItem("uid");
         let myUsername = localStorage.getItem("username");
         let myDp = localStorage.getItem("dp_url") || "";
-
         if (!myUid) window.location.href = "/";
-
         document.getElementById("myUsername").textContent = (myUsername || "User") + " ✏️";
 
         let currentChatUser = null;
@@ -175,17 +166,14 @@
 
         function formatTime(isoString) {
             try {
-                const date = new Date(isoString);
-                return date.toLocaleTimeString('en-PK', {
-                    hour: '2-digit', minute: '2-digit', hour12: true,
-                    timeZone: 'Asia/Karachi'
+                return new Date(isoString).toLocaleTimeString('en-PK', {
+                    hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Karachi'
                 });
             } catch (e) { return ""; }
         }
 
         function getDisplayName(user) {
-            if (savedContacts[user.uid]) return savedContacts[user.uid];
-            return user.username;
+            return savedContacts[user.uid] || user.username;
         }
 
         function getAvatarHtml(user, size = 40) {
@@ -206,36 +194,22 @@
                 wrapper.innerHTML = `<div class="avatar" id="myAvatar" style="width:40px;height:40px">${(myUsername || "U")[0].toUpperCase()}</div>`;
             }
         }
-
         setMyAvatar();
 
         const COUNTRIES = [
-            { code: "+92", name: "Pakistan 🇵🇰" },
-            { code: "+91", name: "India 🇮🇳" },
-            { code: "+1", name: "USA 🇺🇸" },
-            { code: "+44", name: "UK 🇬🇧" },
-            { code: "+971", name: "UAE 🇦🇪" },
-            { code: "+966", name: "Saudi Arabia 🇸🇦" },
-            { code: "+974", name: "Qatar 🇶🇦" },
-            { code: "+965", name: "Kuwait 🇰🇼" },
-            { code: "+973", name: "Bahrain 🇧🇭" },
-            { code: "+968", name: "Oman 🇴🇲" },
-            { code: "+61", name: "Australia 🇦🇺" },
-            { code: "+86", name: "China 🇨🇳" },
-            { code: "+81", name: "Japan 🇯🇵" },
-            { code: "+49", name: "Germany 🇩🇪" },
-            { code: "+33", name: "France 🇫🇷" },
-            { code: "+39", name: "Italy 🇮🇹" },
-            { code: "+34", name: "Spain 🇪🇸" },
-            { code: "+90", name: "Turkey 🇹🇷" },
-            { code: "+880", name: "Bangladesh 🇧🇩" },
-            { code: "+94", name: "Sri Lanka 🇱🇰" },
-            { code: "+977", name: "Nepal 🇳🇵" },
-            { code: "+60", name: "Malaysia 🇲🇾" },
-            { code: "+65", name: "Singapore 🇸🇬" },
-            { code: "+62", name: "Indonesia 🇮🇩" },
-            { code: "+63", name: "Philippines 🇵🇭" },
-            { code: "+66", name: "Thailand 🇹🇭" },
+            { code: "+92", name: "Pakistan 🇵🇰" }, { code: "+91", name: "India 🇮🇳" },
+            { code: "+1", name: "USA 🇺🇸" }, { code: "+44", name: "UK 🇬🇧" },
+            { code: "+971", name: "UAE 🇦🇪" }, { code: "+966", name: "Saudi Arabia 🇸🇦" },
+            { code: "+974", name: "Qatar 🇶🇦" }, { code: "+965", name: "Kuwait 🇰🇼" },
+            { code: "+973", name: "Bahrain 🇧🇭" }, { code: "+968", name: "Oman 🇴🇲" },
+            { code: "+61", name: "Australia 🇦🇺" }, { code: "+86", name: "China 🇨🇳" },
+            { code: "+81", name: "Japan 🇯🇵" }, { code: "+49", name: "Germany 🇩🇪" },
+            { code: "+33", name: "France 🇫🇷" }, { code: "+39", name: "Italy 🇮🇹" },
+            { code: "+34", name: "Spain 🇪🇸" }, { code: "+90", name: "Turkey 🇹🇷" },
+            { code: "+880", name: "Bangladesh 🇧🇩" }, { code: "+94", name: "Sri Lanka 🇱🇰" },
+            { code: "+977", name: "Nepal 🇳🇵" }, { code: "+60", name: "Malaysia 🇲🇾" },
+            { code: "+65", name: "Singapore 🇸🇬" }, { code: "+62", name: "Indonesia 🇮🇩" },
+            { code: "+63", name: "Philippines 🇵🇭" }, { code: "+66", name: "Thailand 🇹🇭" },
             { code: "+84", name: "Vietnam 🇻🇳" }
         ];
 
@@ -256,15 +230,12 @@
                 const res = await fetch(`${API}/contacts/${myUid}`);
                 const data = await res.json();
                 savedContacts = data.contacts || {};
-            } catch (e) {
-                console.log("Contacts load error:", e);
-            }
+            } catch (e) { console.log("Contacts load error:", e); }
         }
 
         function connectWS() {
             ws = new WebSocket(`${WS_URL}/${myUid}`);
             ws.onopen = () => {
-                console.log("WebSocket connected");
                 loadContacts().then(() => loadChatList());
             };
 
@@ -337,16 +308,12 @@
 
                 if (data.type === "user_online") {
                     loadChatList();
-                    if (currentChatUser && currentChatUser.uid === data.user_id) {
-                        renderChatHeader();
-                    }
+                    if (currentChatUser && currentChatUser.uid === data.user_id) renderChatHeader();
                 }
 
                 if (data.type === "user_offline") {
                     loadChatList();
-                    if (currentChatUser && currentChatUser.uid === data.user_id) {
-                        renderChatHeader();
-                    }
+                    if (currentChatUser && currentChatUser.uid === data.user_id) renderChatHeader();
                 }
 
                 if (data.type === "username_updated") {
@@ -394,7 +361,6 @@
                 setTimeout(connectWS, 1000);
             };
         }
-
         connectWS();
 
         async function loadChatList() {
@@ -404,7 +370,6 @@
                 chatListData = data.chats || [];
                 renderChatList();
             } catch (e) {
-                console.log("Chat list load error:", e);
                 renderChatList();
             }
         }
@@ -415,23 +380,19 @@
                 list.innerHTML = '<p class="empty-msg">Koi chat nahi. User dhoondein.</p>';
                 return;
             }
-
             list.innerHTML = chatListData.map(c => {
                 const u = c.user;
                 const m = c.latest_message;
                 const unread = c.unread_count;
                 const displayName = getDisplayName(u);
                 const isOnline = c.is_online;
-
                 let preview = "";
                 let tickPreview = "";
                 let timeStr = "";
-
                 if (m) {
                     preview = m.text || (m.file_type === "image" ? "📷 Image" : m.file_type === "video" ? "🎥 Video" : "📄 File");
                     if (m.sender_id === myUid) preview = "Aap: " + preview;
                     if (preview.length > 30) preview = preview.substring(0, 30) + "...";
-
                     if (m.sender_id === myUid) {
                         if (m.read) tickPreview = '<span class="tick-preview blue">✓✓</span>';
                         else if (m.delivered) tickPreview = '<span class="tick-preview">✓✓</span>';
@@ -441,10 +402,8 @@
                 } else {
                     preview = "Chat shuru karein";
                 }
-
                 const unreadBadge = unread > 0 ? `<span class="unread-badge">${unread}</span>` : "";
                 const active = currentChatUser && currentChatUser.uid === u.uid ? "active" : "";
-
                 return `
                     <div class="chat-item ${active}" onclick="openChat('${u.uid}', '${u.username}', '${u.email}')">
                         <div class="avatar-wrapper">
@@ -469,7 +428,6 @@
         async function searchUser() {
             const query = document.getElementById("searchUser").value.trim();
             if (!query) return;
-
             if (query.includes("@")) {
                 try {
                     const res = await fetch(`${API}/find-user/${query}`);
@@ -481,9 +439,7 @@
                     } else {
                         showToast("User nahi mila ya woh aap khud hain", "error");
                     }
-                } catch (e) {
-                    showToast("Server error", "error");
-                }
+                } catch (e) { showToast("Server error", "error"); }
             } 
             else if (/\d/.test(query)) {
                 populateSearchCountry();
@@ -499,9 +455,7 @@
             const code = document.getElementById("searchCountryCode").value;
             const local = document.getElementById("searchPhoneLocal").value.trim();
             if (!local) return;
-
             const fullPhone = code + local.replace(/^0+/, "");
-
             try {
                 const res = await fetch(`${API}/find-phone/${encodeURIComponent(fullPhone)}`);
                 const data = await res.json();
@@ -513,9 +467,7 @@
                 } else {
                     showToast("User nahi mila ya woh aap khud hain", "error");
                 }
-            } catch (e) {
-                showToast("Server error", "error");
-            }
+            } catch (e) { showToast("Server error", "error"); }
         }
 
         function closeSearchCountry() {
@@ -527,28 +479,21 @@
             hideTypingIndicator();
             messageElements = {};
             clearFile();
-
             renderChatHeader();
             document.getElementById("messageInput").classList.remove("hidden");
             renderChatList();
-
             document.getElementById("chatArea").classList.add("active");
             document.getElementById("sidebar").classList.add("hidden-mobile");
-
             markAsRead(uid);
-
             const res = await fetch(`${API}/messages/${myUid}/${uid}`);
             const data = await res.json();
-
             const msgBox = document.getElementById("messages");
             msgBox.innerHTML = "";
-
             if (data.messages.length === 0) {
                 msgBox.innerHTML = '<p class="empty-msg">Abhi koi message nahi. Pehla message bhejein!</p>';
             } else {
                 data.messages.forEach(m => addMessageToUI(m, m.sender_id === myUid));
             }
-
             loadChatList();
         }
 
@@ -556,7 +501,6 @@
             if (!currentChatUser) return;
             const displayName = getDisplayName(currentChatUser);
             const isOnline = chatListData.find(c => c.user.uid === currentChatUser.uid)?.is_online;
-
             document.getElementById("chatHeader").innerHTML = `
                 <button class="back-btn" onclick="closeChat()">←</button>
                 <div class="avatar-wrapper">
@@ -581,79 +525,41 @@
             const msgBox = document.getElementById("messages");
             const empty = msgBox.querySelector(".empty-msg");
             if (empty) empty.remove();
-
             if (msg.id && messageElements[msg.id]) return;
-
             const div = document.createElement("div");
             div.className = `message ${isMine ? 'sent' : 'received'}`;
-
             let content = "";
-
             if (msg.file_url) {
                 const fullUrl = `${API}${msg.file_url}`;
                 const dlUrl = `${API}/download/${msg.file_url.split('/').pop()}`;
                 if (msg.file_type === "image") {
-                    content += `
-                        <div class="msg-attachment">
-                            <img src="${fullUrl}" class="msg-image" onclick="window.open('${fullUrl}','_blank')">
-                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
-                        </div>`;
+                    content += `<div class="msg-attachment"><img src="${fullUrl}" class="msg-image" onclick="window.open('${fullUrl}','_blank')"><a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a></div>`;
                 } else if (msg.file_type === "video") {
-                    content += `
-                        <div class="msg-attachment">
-                            <video src="${fullUrl}" controls class="msg-video"></video>
-                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
-                        </div>`;
+                    content += `<div class="msg-attachment"><video src="${fullUrl}" controls class="msg-video"></video><a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a></div>`;
                 } else if (msg.file_type === "audio") {
-                    content += `
-                        <div class="msg-attachment">
-                            <audio src="${fullUrl}" controls class="msg-audio"></audio>
-                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
-                        </div>`;
+                    content += `<div class="msg-attachment"><audio src="${fullUrl}" controls class="msg-audio"></audio><a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a></div>`;
                 } else {
-                    content += `
-                        <div class="msg-attachment">
-                            <a href="${fullUrl}" target="_blank" class="msg-file">📄 ${escapeHtml(msg.file_name || "File")}</a>
-                            <a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a>
-                        </div>`;
+                    content += `<div class="msg-attachment"><a href="${fullUrl}" target="_blank" class="msg-file">📄 ${escapeHtml(msg.file_name || "File")}</a><a href="${dlUrl}" class="download-btn" download title="Download">⬇️</a></div>`;
                 }
             }
-
             if (msg.text) {
                 content += `<div class="msg-text">${escapeHtml(msg.text)}</div>`;
             }
-
             let tickHtml = "";
             if (isMine) {
                 if (msg.read) tickHtml = '<span class="msg-tick double blue">✓✓</span>';
                 else if (msg.delivered) tickHtml = '<span class="msg-tick double">✓✓</span>';
                 else tickHtml = '<span class="msg-tick single">✓</span>';
             }
-
-            content += `
-                <div class="msg-meta">
-                    <span class="msg-time">${formatTime(msg.timestamp)}</span>
-                    ${tickHtml}
-                </div>
-            `;
-
+            content += `<div class="msg-meta"><span class="msg-time">${formatTime(msg.timestamp)}</span>${tickHtml}</div>`;
             div.innerHTML = content;
-
-            div.oncontextmenu = (e) => {
-                e.preventDefault();
-                showMessageMenu(msg);
-            };
-
+            div.oncontextmenu = (e) => { e.preventDefault(); showMessageMenu(msg); };
             let pressTimer;
-            div.addEventListener('touchstart', () => {
-                pressTimer = setTimeout(() => showMessageMenu(msg), 600);
-            });
+            div.addEventListener('touchstart', () => { pressTimer = setTimeout(() => showMessageMenu(msg), 600); });
             div.addEventListener('touchend', () => clearTimeout(pressTimer));
             div.addEventListener('touchmove', () => clearTimeout(pressTimer));
-
             msgBox.appendChild(div);
             msgBox.scrollTop = msgBox.scrollHeight;
-
             if (msg.id) messageElements[msg.id] = div;
         }
 
@@ -671,34 +577,28 @@
         function openForwardModal() {
             forwardSelectedUsers = [];
             const list = document.getElementById("forwardList");
-
             if (chatListData.length === 0) {
                 list.innerHTML = '<p class="empty-msg">Koi chat nahi.</p>';
                 document.getElementById("forwardModal").classList.remove("hidden");
                 return;
             }
-
             list.innerHTML = chatListData.map(c => {
                 const u = c.user;
                 const displayName = getDisplayName(u);
                 return `
                     <div class="forward-item" onclick="toggleForwardUser('${u.uid}', this)">
                         <input type="checkbox" id="fwd_${u.uid}" onclick="event.stopPropagation(); toggleForwardUser('${u.uid}', this.parentElement)">
-                        <div class="avatar-wrapper">
-                            ${getAvatarHtml(u, 40)}
-                        </div>
+                        <div class="avatar-wrapper">${getAvatarHtml(u, 40)}</div>
                         <span>${displayName}</span>
                     </div>
                 `;
             }).join("");
-
             document.getElementById("forwardModal").classList.remove("hidden");
         }
 
         function toggleForwardUser(uid, el) {
             const idx = forwardSelectedUsers.indexOf(uid);
             const checkbox = document.getElementById("fwd_" + uid);
-
             if (idx === -1) {
                 forwardSelectedUsers.push(uid);
                 if (checkbox) checkbox.checked = true;
@@ -722,41 +622,25 @@
                 showToast("Kam az kam ek user select karein", "error");
                 return;
             }
-
             const msg = forwardingMessage;
-
             for (const uid of forwardSelectedUsers) {
                 const tempId = "temp_" + Date.now() + "_" + uid;
-
                 if (currentChatUser && currentChatUser.uid === uid) {
                     addMessageToUI({
-                        id: tempId,
-                        sender_id: myUid,
-                        receiver_id: uid,
-                        text: msg.text,
-                        timestamp: new Date().toISOString(),
-                        delivered: false,
-                        read: false,
-                        file_url: msg.file_url,
-                        file_type: msg.file_type,
-                        file_name: msg.file_name
+                        id: tempId, sender_id: myUid, receiver_id: uid, text: msg.text,
+                        timestamp: new Date().toISOString(), delivered: false, read: false,
+                        file_url: msg.file_url, file_type: msg.file_type, file_name: msg.file_name
                     }, true);
                 }
-
                 ws.send(JSON.stringify({
                     type: "send_message",
                     data: {
-                        sender_id: myUid,
-                        receiver_id: uid,
-                        text: msg.text || "",
-                        temp_id: tempId,
-                        file_url: msg.file_url || null,
-                        file_type: msg.file_type || null,
-                        file_name: msg.file_name || null
+                        sender_id: myUid, receiver_id: uid, text: msg.text || "",
+                        temp_id: tempId, file_url: msg.file_url || null,
+                        file_type: msg.file_type || null, file_name: msg.file_name || null
                     }
                 }));
             }
-
             showToast(`${forwardSelectedUsers.length} users ko forward ho gaya`, "success");
             closeForwardModal();
         }
@@ -807,25 +691,17 @@
         async function sendMessage() {
             const input = document.getElementById("msgText");
             const text = input.value.trim();
-
             if (!text && !selectedFile) return;
             if (!currentChatUser) return;
-
             let fileData = {};
-
             if (selectedFile) {
                 const formData = new FormData();
                 formData.append("file", selectedFile);
-
                 try {
                     const res = await fetch(`${API}/upload`, { method: "POST", body: formData });
                     const data = await res.json();
                     if (data.success) {
-                        fileData = {
-                            file_url: data.file_url,
-                            file_type: data.file_type,
-                            file_name: data.file_name
-                        };
+                        fileData = { file_url: data.file_url, file_type: data.file_type, file_name: data.file_name };
                     } else {
                         showToast("File upload nahi hui", "error");
                         return;
@@ -835,38 +711,22 @@
                     return;
                 }
             }
-
             const tempId = "temp_" + Date.now();
-
             addMessageToUI({
-                id: tempId,
-                sender_id: myUid,
-                receiver_id: currentChatUser.uid,
-                text: text,
-                timestamp: new Date().toISOString(),
-                delivered: false,
-                read: false,
-                file_url: fileData.file_url,
-                file_type: fileData.file_type,
-                file_name: fileData.file_name
+                id: tempId, sender_id: myUid, receiver_id: currentChatUser.uid, text: text,
+                timestamp: new Date().toISOString(), delivered: false, read: false,
+                file_url: fileData.file_url, file_type: fileData.file_type, file_name: fileData.file_name
             }, true);
-
             ws.send(JSON.stringify({
                 type: "send_message",
                 data: {
-                    sender_id: myUid,
-                    receiver_id: currentChatUser.uid,
-                    text: text,
-                    temp_id: tempId,
-                    file_url: fileData.file_url,
-                    file_type: fileData.file_type,
-                    file_name: fileData.file_name
+                    sender_id: myUid, receiver_id: currentChatUser.uid, text: text,
+                    temp_id: tempId, file_url: fileData.file_url,
+                    file_type: fileData.file_type, file_name: fileData.file_name
                 }
             }));
-
             input.value = "";
             clearFile();
-
             if (isTyping) {
                 isTyping = false;
                 ws.send(JSON.stringify({ type: "stop_typing", receiver_id: currentChatUser.uid }));
@@ -890,14 +750,11 @@
         async function handleDpUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const formData = new FormData();
             formData.append("file", file);
-
             try {
                 const upRes = await fetch(`${API}/upload`, { method: "POST", body: formData });
                 const upData = await upRes.json();
-
                 if (upData.success) {
                     const res = await fetch(`${API}/update-dp`, {
                         method: "POST",
@@ -912,9 +769,7 @@
                         showToast("DP update ho gayi", "success");
                     }
                 }
-            } catch (e) {
-                showToast("DP upload error", "error");
-            }
+            } catch (e) { showToast("DP upload error", "error"); }
         }
 
         function openUsernameModal() {
@@ -938,9 +793,7 @@
                     closeUsernameModal();
                     showToast("Username update ho gaya", "success");
                 }
-            } catch (e) {
-                showToast("Error", "error");
-            }
+            } catch (e) { showToast("Error", "error"); }
         }
 
         function openSaveContact() {
@@ -970,9 +823,7 @@
                     renderChatList();
                     showToast("Contact save ho gaya", "success");
                 }
-            } catch (e) {
-                showToast("Error", "error");
-            }
+            } catch (e) { showToast("Error", "error"); }
         }
 
         function confirmDelete() {
@@ -994,9 +845,7 @@
                     showToast("Account delete ho gaya", "success");
                     setTimeout(() => window.location.href = "/", 1500);
                 }
-            } catch (e) {
-                showToast("Error", "error");
-            }
+            } catch (e) { showToast("Error", "error"); }
         }
 
         function logout() {
