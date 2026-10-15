@@ -170,7 +170,7 @@ def login(user: UserLogin):
         "dp_url": user_data.get("dp_url", "")
     }
 
-# ---- MAGIC LINK ----
+# ---- PASSWORD RESET LINK ----
 @app.post("/send-magic-link")
 def send_magic_link(data: ForgotPassword):
     users = db.collection("users").where("email", "==", data.email).stream()
@@ -182,18 +182,11 @@ def send_magic_link(data: ForgotPassword):
         raise HTTPException(status_code=404, detail="Yeh email register nahi hai")
 
     try:
-        action_code_settings = admin_auth.ActionCodeSettings(
-            url="https://chat-app-awa9.onrender.com/reset",
-            handle_code_in_app=False
-        )
-        link = admin_auth.generate_sign_in_with_email_link(
-            data.email,
-            action_code_settings
-        )
-        print(f"Magic link: {link}")
-        return {"success": True, "message": "Magic link aapki email par bhej diya gaya"}
+        # Yeh email khud bhejta hai (Firebase default template ke saath)
+        admin_auth.generate_password_reset_link(data.email)
+        return {"success": True, "message": "Password reset link aapki email par bhej diya gaya"}
     except Exception as e:
-        print(f"Magic link error: {e}")
+        print(f"Reset error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/find-user/{email}")
