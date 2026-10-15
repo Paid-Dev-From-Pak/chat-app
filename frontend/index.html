@@ -10,7 +10,7 @@
     <div class="auth-container">
         <div class="auth-box">
             <h1>💬 Chat App</h1>
-            <p class="subtitle">Apna WhatsApp jaisa chat</p>
+            <p class="subtitle">Secure & Fast Messaging</p>
 
             <div class="tabs">
                 <button id="loginTab" class="tab active" onclick="showLogin()">Login</button>
@@ -101,15 +101,15 @@
         }
         populateCountryDropdown();
 
-        // ===== PASSWORD EYE TOGGLE (Improved) =====
+        // ===== PASSWORD EYE TOGGLE (Only Eye, No Monkey) =====
         window.togglePassword = function(inputId, btn) {
             const input = document.getElementById(inputId);
             if (input.type === "password") {
                 input.type = "text";
-                btn.textContent = "🙈";
+                btn.style.opacity = "0.5";
             } else {
                 input.type = "password";
-                btn.textContent = "👁️";
+                btn.style.opacity = "1";
             }
         };
 
