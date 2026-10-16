@@ -6,8 +6,6 @@
 
 A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket**.
 
-[![Visit Now](https://img.shields.io/badge/🚀_Visit_Now-success?style=for-the-badge)](https://chat-app-awa9.onrender.com)
-
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="40" />
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg" width="40" />
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" width="40" />
@@ -94,6 +92,7 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 ---
 
 ## 📁 Project Structure
+
 
 ```
 chat-app/
