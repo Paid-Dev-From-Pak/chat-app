@@ -139,7 +139,9 @@ chat-app/
 
 **ByteForge Technologies**
 
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/byteforge_technologies_/)
+<a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
+  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram" />
+</a>
 
 ---
 
