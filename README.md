@@ -137,15 +137,21 @@ chat-app/
 
   
 
+
 <a href="https://www.instagram.com/byteforge_technologies_/"
    target="_blank"
-   style="display: inline-flex; align-items: center; text-decoration: none;">
+   rel="noopener noreferrer"
+   style="display: flex; flex-direction: row; align-items: center; gap: 8px; width: fit-content;">
   <img src="https://img.icons8.com/fluency/48/instagram-new.png"
+       alt="Instagram"
        width="28"
-       style="margin-right: 8px;"
-       alt="Instagram" />
-  <span>@byteforge_technologies_</span>
+       height="28"
+       style="display: block; flex-shrink: 0;" />
+  <span style="display: inline-block; white-space: nowrap;">
+    @byteforge_technologies_
+  </span>
 </a>
+
 
 
 
