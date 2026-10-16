@@ -17,6 +17,8 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 
 ## ✨ Features
 
+<div align="center">
+
 <table>
 <tr>
 <td width="50%" valign="top">
@@ -59,6 +61,8 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 </td>
 </tr>
 </table>
+
+</div>
 
 ---
 
