@@ -85,7 +85,13 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 
 <div align="center">
 
-### 👉 [**chat-app-awa9.onrender.com**](https://chat-app-awa9.onrender.com) 👈
+<a href="https://chat-app-awa9.onrender.com" target="_blank">
+  <img src="https://img.shields.io/badge/🚀_Launch_Live_Demo-Visit_Chat_App-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Launch Live Demo" />
+</a>
+
+<br/>
+
+**Experience real-time messaging in action!**
 
 </div>
 
