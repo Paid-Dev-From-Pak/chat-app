@@ -137,8 +137,7 @@ chat-app/
 ## 👨‍💻 Developer
 
 <a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
-  <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="28" style="vertical-align:middle;" alt="Instagram" />
-  <span style="vertical-align:middle;">@byteforge_technologies_</span>
+  <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="40" alt="Instagram" />
 </a>
 
 ---
