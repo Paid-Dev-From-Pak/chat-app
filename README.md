@@ -132,7 +132,7 @@ chat-app/
 
 ---
 
-<<div align="center">
+<div align="center">
 
 ## 👨‍💻 Developer
 
