@@ -135,17 +135,17 @@ chat-app/
 <div align="center">
 
 
-👨‍💻 Developer
+## 👨‍💻 Developer
 
-ByteForge Technologies
+**ByteForge Technologies**
 
-[Insta Icon] @byteforge_technologies_
+[![Instagram](https://img.icons8.com/fluency/48/instagram-new.png)](https://www.instagram.com/byteforge_technologies_/) [@byteforge_technologies_](https://www.instagram.com/byteforge_technologies_/)
 
-─────────────────────
+---
 
-⭐ If you like this project, please give it a star!
+### ⭐ If you like this project, please give it a star!
 
-Made with ❤️ by ByteForge Technologies
+**Made with ❤️ by ByteForge Technologies**
 
 
 
