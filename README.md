@@ -6,10 +6,14 @@
 
 A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket**.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-success?style=for-the-badge)](https://chat-app-awa9.onrender.com)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
+[![Visit Now](https://img.shields.io/badge/🚀_Visit_Now-success?style=for-the-badge)](https://chat-app-awa9.onrender.com)
+
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="40" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg" width="40" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" width="40" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="40" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="40" />
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" width="40" />
 
 ---
 
@@ -70,9 +74,10 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 
 <div align="center">
 
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="30" /> Python | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="30" /> HTML/CSS | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" width="30" /> Firebase | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg" width="30" /> WebSocket | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" width="30" /> Render |
+| **Backend** | **Frontend** | **Database** | **Real-time** | **Hosting** |
 |:---:|:---:|:---:|:---:|:---:|
-| **FastAPI** | **Vanilla JS** | **Firestore** | **Async** | **Cloud** |
+| 🐍 Python | 🌐 HTML/CSS/JS | 🔥 Firebase | ⚡ WebSocket | 🚀 Render |
+| FastAPI | Vanilla JS | Firestore | Async | Cloud |
 
 </div>
 
