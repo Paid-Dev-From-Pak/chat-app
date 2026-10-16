@@ -140,7 +140,7 @@ chat-app/
 **ByteForge Technologies**
 
 <a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/instagram/instagram-original.svg" width="45" alt="Instagram" />
+  <img src="https://cdn.simpleicons.org/instagram/E4405F" width="45" alt="Instagram" />
 </a>
 
 ---
