@@ -2,7 +2,7 @@
 
 # 💬 Chat App
 
-### Real-time messaging, reimagined.
+### Real-time messaging.
 
 A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket**.
 
