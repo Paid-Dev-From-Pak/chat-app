@@ -136,10 +136,17 @@ chat-app/
 <div align="center">
 
   
-<a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
-  <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="28" style="vertical-align:middle; margin-right: 8px;" alt="Instagram" />
-  <span style="vertical-align:middle;">@byteforge_technologies_</span>
+
+<a href="https://www.instagram.com/byteforge_technologies_/"
+   target="_blank"
+   style="display: inline-flex; align-items: center; text-decoration: none;">
+  <img src="https://img.icons8.com/fluency/48/instagram-new.png"
+       width="28"
+       style="margin-right: 8px;"
+       alt="Instagram" />
+  <span>@byteforge_technologies_</span>
 </a>
+
 
 
 ---
