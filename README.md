@@ -1,30 +1,40 @@
-# 💬 Chat App
 
-A real-time chat application built with FastAPI, Firebase, and WebSocket.
+---
 
-## ✨ Features
+## 🎯 API Endpoints
 
-- Real-time messaging
-- Online/offline status
-- Typing indicators
-- Read receipts (single, double, blue ticks)
-- File sharing (images, videos, docs)
-- Forward messages
-- Profile pictures
-- Username change
-- Contact saving
-- Search users by email or phone
-- Responsive design (mobile + desktop)
+<details>
+<summary><b>Click to expand</b></summary>
 
-## 🛠️ Tech Stack
+| Method | Endpoint | Description |
+|:---:|:---|:---|
+| `POST` | `/register` | Register new user |
+| `POST` | `/login` | Login user |
+| `GET` | `/find-user/{email}` | Find by email |
+| `GET` | `/find-phone/{phone}` | Find by phone |
+| `POST` | `/send-message` | Send message |
+| `GET` | `/messages/{u1}/{u2}` | Get chat history |
+| `POST` | `/mark-read` | Mark as read |
+| `GET` | `/chat-list/{id}` | Get chat list |
+| `POST` | `/upload` | Upload file |
+| `WS` | `/ws/{user_id}` | WebSocket |
 
-- **Backend:** FastAPI (Python)
-- **Frontend:** HTML, CSS, JavaScript
-- **Database:** Firebase Firestore
-- **Auth:** Firebase Authentication
-- **Real-time:** WebSocket
-- **Hosting:** Render
+</details>
 
-## 🚀 Live Demo
+---
 
-[https://chat-app-awa9.onrender.com](https://chat-app-awa9.onrender.com)
+<div align="center">
+
+## 👨‍💻 Developer
+
+**ByteForge Technologies**
+
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/byteforge_technologies_/)
+
+---
+
+### ⭐ If you like this project, please give it a star!
+
+**Made with ❤️ by ByteForge Technologies**
+
+</div>
