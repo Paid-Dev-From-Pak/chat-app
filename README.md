@@ -136,7 +136,10 @@ chat-app/
 
 ## 👨‍💻 Developer
 
-[![Instagram](https://img.shields.io/badge/-@byteforge__technologies_-f0f2f5?style=flat-square&logo=instagram&logoColor=E4405F)](https://www.instagram.com/byteforge_technologies_/)
+<a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
+  <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="28" style="vertical-align:middle;" alt="Instagram" />
+  <span style="vertical-align:middle;">@byteforge_technologies_</span>
+</a>
 
 ---
 
