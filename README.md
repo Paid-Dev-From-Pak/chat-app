@@ -19,16 +19,16 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 
 <table>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
 ### 💬 Messaging
 - ⚡ Real-time delivery
-- ✅ Read receipts (✓✓✓)
+- ✅ Read receipts
 - ⌨️ Typing indicators
 - ↩️ Forward messages
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
 ### 👤 User Experience
 - 🟢 Online/offline status
@@ -39,7 +39,7 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 </td>
 </tr>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
 ### 🔍 Discovery
 - 📧 Search by email
@@ -48,7 +48,7 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 - 🌍 Multi-country support
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
 ### 📱 Design
 - 📱 Fully responsive
@@ -69,7 +69,7 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 | **Backend** | **Frontend** | **Database** | **Real-time** | **Hosting** |
 |:---:|:---:|:---:|:---:|:---:|
 | 🐍 Python | 🌐 HTML/CSS/JS | 🔥 Firebase | ⚡ WebSocket | 🚀 Render |
-| FastAPI | Vanilla JS | Firestore | Async | Free Tier |
+| FastAPI | Vanilla JS | Firestore | Async | Cloud |
 
 </div>
 
@@ -80,8 +80,6 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 <div align="center">
 
 ### 👉 [**chat-app-awa9.onrender.com**](https://chat-app-awa9.onrender.com) 👈
-
-> ⏱️ *First load may take 30-60 seconds as the free server wakes up.*
 
 </div>
 
