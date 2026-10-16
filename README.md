@@ -135,7 +135,18 @@ chat-app/
 
 <div align="center">
 
-[<img src="https://img.icons8.com/fluency/48/instagram-new.png" width="28" alt="Instagram" /> @byteforge_technologies_](https://www.instagram.com/byteforge_technologies_/)
+<table>
+  <tr>
+    <td>
+      <a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
+        <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="24" alt="Instagram" />
+      </a>
+    </td>
+    <td>
+      <a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">@byteforge_technologies_</a>
+    </td>
+  </tr>
+</table>
 
 ---
 
