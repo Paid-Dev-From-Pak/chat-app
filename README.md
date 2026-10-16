@@ -131,10 +131,10 @@ chat-app/
 </details>
 
 ---
-
+## 👨‍💻 Developer
 <div align="center">
   
-## 👨‍💻 Developer
+
 
 <a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
   <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="28" style="vertical-align:middle; margin-right: 8px;" alt="Instagram" />
