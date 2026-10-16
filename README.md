@@ -70,10 +70,9 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 
 <div align="center">
 
-| **Backend** | **Frontend** | **Database** | **Real-time** | **Hosting** |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="30" /> Python | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="30" /> HTML/CSS | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" width="30" /> Firebase | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg" width="30" /> WebSocket | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" width="30" /> Render |
 |:---:|:---:|:---:|:---:|:---:|
-| 🐍 Python | 🌐 HTML/CSS/JS | 🔥 Firebase | ⚡ WebSocket | 🚀 Render |
-| FastAPI | Vanilla JS | Firestore | Async | Cloud |
+| **FastAPI** | **Vanilla JS** | **Firestore** | **Async** | **Cloud** |
 
 </div>
 
