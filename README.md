@@ -94,16 +94,19 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 ---
 
 ## 📁 Project Structure
+
+```
 chat-app/
 ├── 📂 frontend/
-│ ├── 📄 index.html # Login / Register
-│ ├── 📄 chat.html # Main chat interface
-│ └── 🎨 style.css # Styling
-├── 📂 uploads/ # Uploaded files
-├── 🐍 main.py # FastAPI backend
-├── 🔥 firebase_config.py # Firebase setup
-├── 📋 requirements.txt # Dependencies
+│   ├── 📄 index.html      # Login / Register
+│   ├── 📄 chat.html       # Main chat interface
+│   └── 🎨 style.css       # Styling
+├── 📂 uploads/            # Uploaded files
+├── 🐍 main.py             # FastAPI backend
+├── 🔥 firebase_config.py  # Firebase setup
+├── 📋 requirements.txt    # Dependencies
 └── 📖 README.md
+```
 
 
 ---
