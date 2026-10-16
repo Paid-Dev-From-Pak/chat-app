@@ -28,11 +28,3 @@ A real-time chat application built with FastAPI, Firebase, and WebSocket.
 ## 🚀 Live Demo
 
 [https://chat-app-awa9.onrender.com](https://chat-app-awa9.onrender.com)
-
-## 📦 Setup
-
-```bash
-git clone https://github.com/Paid-Dev-From-Pak/chat-app.git
-cd chat-app
-pip install -r requirements.txt
-uvicorn main:app --reload
