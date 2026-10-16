@@ -1,40 +1,90 @@
+<div align="center">
+
+# 💬 Chat App
+
+### Real-time messaging, reimagined.
+
+A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket**.
+
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-success?style=for-the-badge)](https://chat-app-awa9.onrender.com)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
 
 ---
 
-## 🎯 API Endpoints
+</div>
 
-<details>
-<summary><b>Click to expand</b></summary>
+## ✨ Features
 
-| Method | Endpoint | Description |
-|:---:|:---|:---|
-| `POST` | `/register` | Register new user |
-| `POST` | `/login` | Login user |
-| `GET` | `/find-user/{email}` | Find by email |
-| `GET` | `/find-phone/{phone}` | Find by phone |
-| `POST` | `/send-message` | Send message |
-| `GET` | `/messages/{u1}/{u2}` | Get chat history |
-| `POST` | `/mark-read` | Mark as read |
-| `GET` | `/chat-list/{id}` | Get chat list |
-| `POST` | `/upload` | Upload file |
-| `WS` | `/ws/{user_id}` | WebSocket |
+<table>
+<tr>
+<td width="50%">
 
-</details>
+### 💬 Messaging
+- ⚡ Real-time delivery
+- ✅ Read receipts (✓✓✓)
+- ⌨️ Typing indicators
+- ↩️ Forward messages
+
+</td>
+<td width="50%">
+
+### 👤 User Experience
+- 🟢 Online/offline status
+- 📎 File sharing
+- 👤 Profile pictures
+- ✏️ Username change
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🔍 Discovery
+- 📧 Search by email
+- 📱 Search by phone
+- 📇 Save contacts
+- 🌍 Multi-country support
+
+</td>
+<td width="50%">
+
+### 📱 Design
+- 📱 Fully responsive
+- 🎨 Clean interface
+- ⚡ Fast & smooth
+- 🌙 Mobile-first
+
+</td>
+</tr>
+</table>
 
 ---
+
+## 🛠️ Tech Stack
 
 <div align="center">
 
-## 👨‍💻 Developer
+| **Backend** | **Frontend** | **Database** | **Real-time** | **Hosting** |
+|:---:|:---:|:---:|:---:|:---:|
+| 🐍 Python | 🌐 HTML/CSS/JS | 🔥 Firebase | ⚡ WebSocket | 🚀 Render |
+| FastAPI | Vanilla JS | Firestore | Async | Free Tier |
 
-**ByteForge Technologies**
-
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/byteforge_technologies_/)
+</div>
 
 ---
 
-### ⭐ If you like this project, please give it a star!
+## 🚀 Live Demo
 
-**Made with ❤️ by ByteForge Technologies**
+<div align="center">
+
+### 👉 [**chat-app-awa9.onrender.com**](https://chat-app-awa9.onrender.com) 👈
+
+> ⏱️ *First load may take 30-60 seconds as the free server wakes up.*
 
 </div>
+
+---
+
+## 📁 Project Structure
