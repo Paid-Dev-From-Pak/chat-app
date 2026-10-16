@@ -137,7 +137,6 @@ chat-app/
 
 ## 👨‍💻 Developer
 
-**ByteForge Technologies**
 
 [![Instagram](https://img.shields.io/badge/-@byteforge__technologies_-E4405F?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/byteforge_technologies_/)
 
