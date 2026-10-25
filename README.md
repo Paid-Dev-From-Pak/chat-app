@@ -103,7 +103,6 @@ chat-app/
 ├── firebase_config.py  # Firebase setup
 ├── requirements.txt    # Dependencies
 └── README.md
-```
 
 
 ---
