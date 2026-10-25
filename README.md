@@ -92,17 +92,18 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 ---
 
 ## 📁 Project Structure
-chat-app/
-├── 📂 frontend/
-│ ├── 📄 index.html # Login / Register
-│ ├── 📄 chat.html # Main chat interface
-│ └── 🎨 style.css # Styling
-├── 📂 uploads/ # Uploaded files
-├── 🐍 main.py # FastAPI backend
-├── 🔥 firebase_config.py # Firebase setup
-├── 📋 requirements.txt # Dependencies
-└── 📖 README.md
 
+chat-app/
+├── frontend/
+│   ├── index.html      # Login / Register
+│   ├── chat.html       # Main chat interface
+│   └── style.css       # Styling
+├── uploads/            # Uploaded files
+├── main.py             # FastAPI backend
+├── firebase_config.py  # Firebase setup
+├── requirements.txt    # Dependencies
+└── README.md
+```
 
 
 ---
@@ -129,14 +130,19 @@ chat-app/
 
 ---
 
+<div align="center">
+
 ## 👨‍💻 Developer
 
-**ByteForge Technologies**
-
-[![Instagram](https://img.icons8.com/fluency/48/instagram-new.png)](https://www.instagram.com/byteforge_technologies_/) [@byteforge_technologies_](https://www.instagram.com/byteforge_technologies_/)
+<a href="https://www.instagram.com/byteforge_technologies_/" target="_blank">
+  <img src="https://img.icons8.com/fluency/48/instagram-new.png" width="28" style="vertical-align:middle; margin-right: 8px;" alt="Instagram" />
+  <span style="vertical-align:middle;">@byteforge_technologies_</span>
+</a>
 
 ---
 
 ### ⭐ If you like this project, please give it a star!
 
 **Made with ❤️ by ByteForge Technologies**
+
+</div>
