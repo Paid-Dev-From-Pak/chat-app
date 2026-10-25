@@ -11,7 +11,7 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
-                    <div class="avatar-wrapper" onclick="document.getElementById('dpInput').click()" style="cursor:pointer" title="DP change karein">
+                    <div class="avatar-wrapper" onclick="document.getElementById('dpInput').click()" style="cursor:pointer" title="Change DP">
                         <div class="avatar" id="myAvatar">U</div>
                     </div>
                     <span id="myUsername" onclick="openUsernameModal()" style="cursor:pointer">User ✏️</span>
@@ -23,21 +23,21 @@
             </div>
             <input type="file" id="dpInput" style="display:none" accept="image/*" onchange="handleDpUpload(event)">
             <div class="search-box">
-                <input type="text" id="searchUser" placeholder="Email ya phone...">
+                <input type="text" id="searchUser" placeholder="Email or phone...">
                 <button onclick="searchUser()">🔍</button>
             </div>
             <div class="chat-list" id="chatList">
-                <p class="empty-msg">Koi chat nahi. User dhoondein.</p>
+                <p class="empty-msg">No chats yet. Search for a user.</p>
             </div>
         </div>
 
         <div class="chat-area" id="chatArea">
             <div class="chat-header" id="chatHeader">
                 <button class="back-btn" onclick="closeChat()">←</button>
-                <p>Chat select karein</p>
+                <p>Select a chat</p>
             </div>
             <div class="messages" id="messages">
-                <p class="empty-msg">Chat shuru karne ke liye user select karein</p>
+                <p class="empty-msg">Select a user to start chatting</p>
             </div>
             <div class="typing-indicator hidden" id="typingIndicator">
                 <span id="typingText">typing</span>
@@ -54,7 +54,7 @@
                 <input type="file" id="fileInput" style="display:none" 
                        accept="image/*,video/*,.pdf,.doc,.docx,.txt" 
                        onchange="handleFileSelect(event)">
-                <input type="text" id="msgText" placeholder="Message likhein..."
+                <input type="text" id="msgText" placeholder="Type a message..."
                        oninput="onTyping()"
                        onkeypress="if(event.key==='Enter') sendMessage()">
                 <button onclick="sendMessage()">Send ➤</button>
@@ -67,9 +67,9 @@
     <!-- Username Modal -->
     <div class="modal-overlay hidden" id="usernameModal">
         <div class="modal-box">
-            <h3>✏️ Username Change</h3>
-            <p>Naya username daalein:</p>
-            <input type="text" id="newUsername" placeholder="Naya username">
+            <h3>✏️ Change Username</h3>
+            <p>Enter new username:</p>
+            <input type="text" id="newUsername" placeholder="New username">
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeUsernameModal()">Cancel</button>
                 <button class="btn-primary" onclick="updateUsername()">Save</button>
@@ -80,9 +80,9 @@
     <!-- Save Contact Modal -->
     <div class="modal-overlay hidden" id="saveContactModal">
         <div class="modal-box">
-            <h3>💾 Contact Save Karein</h3>
-            <p id="saveContactInfo">Is user ko kis naam se save karna hai?</p>
-            <input type="text" id="contactSavedName" placeholder="Naam">
+            <h3>💾 Save Contact</h3>
+            <p id="saveContactInfo">What name do you want to save this user as?</p>
+            <input type="text" id="contactSavedName" placeholder="Name">
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeSaveContact()">Cancel</button>
                 <button class="btn-primary" onclick="saveContact()">Save</button>
@@ -93,8 +93,8 @@
     <!-- Delete Modal -->
     <div class="modal-overlay hidden" id="deleteModal">
         <div class="modal-box">
-            <h3>⚠️ Account Delete Karein?</h3>
-            <p>Yeh amal wapas nahi ho sakta.</p>
+            <h3>⚠️ Delete Account?</h3>
+            <p>This action cannot be undone.</p>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
                 <button class="btn-danger" onclick="deleteAccount()">Delete Forever</button>
@@ -106,7 +106,7 @@
     <div class="modal-overlay hidden" id="searchCountryModal">
         <div class="modal-box">
             <h3>🌍 Country Code</h3>
-            <p>Country select karein:</p>
+            <p>Select country:</p>
             <select id="searchCountryCode" class="country-select-full"></select>
             <input type="tel" id="searchPhoneLocal" placeholder="3001234567">
             <div class="modal-actions">
@@ -120,7 +120,7 @@
     <div class="modal-overlay hidden" id="forwardModal">
         <div class="modal-box">
             <h3>↪️ Forward Message</h3>
-            <p>Kis ko forward karna hai? (Multiple select karein)</p>
+            <p>Who do you want to forward to? (Select multiple)</p>
             <div class="forward-list" id="forwardList"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeForwardModal()">Cancel</button>
@@ -273,7 +273,7 @@
                         hideTypingIndicator();
                         markAsRead(currentChatUser.uid);
                     } else {
-                        showToast("Naya message aaya!", "info");
+                        showToast("New message received!", "info");
                     }
                     loadChatList();
                 }
@@ -353,7 +353,7 @@
 
             ws.onclose = (event) => {
                 if (event.code === 1008) {
-                    showToast("Account delete ho gaya", "error");
+                    showToast("Account deleted", "error");
                     localStorage.clear();
                     setTimeout(() => window.location.href = "/", 1500);
                     return;
@@ -377,7 +377,7 @@
         function renderChatList() {
             const list = document.getElementById("chatList");
             if (chatListData.length === 0) {
-                list.innerHTML = '<p class="empty-msg">Koi chat nahi. User dhoondein.</p>';
+                list.innerHTML = '<p class="empty-msg">No chats yet. Search for a user.</p>';
                 return;
             }
             list.innerHTML = chatListData.map(c => {
@@ -391,7 +391,7 @@
                 let timeStr = "";
                 if (m) {
                     preview = m.text || (m.file_type === "image" ? "📷 Image" : m.file_type === "video" ? "🎥 Video" : "📄 File");
-                    if (m.sender_id === myUid) preview = "Aap: " + preview;
+                    if (m.sender_id === myUid) preview = "You: " + preview;
                     if (preview.length > 30) preview = preview.substring(0, 30) + "...";
                     if (m.sender_id === myUid) {
                         if (m.read) tickPreview = '<span class="tick-preview blue">✓✓</span>';
@@ -400,7 +400,7 @@
                     }
                     timeStr = formatTime(m.timestamp);
                 } else {
-                    preview = "Chat shuru karein";
+                    preview = "Start chatting";
                 }
                 const unreadBadge = unread > 0 ? `<span class="unread-badge">${unread}</span>` : "";
                 const active = currentChatUser && currentChatUser.uid === u.uid ? "active" : "";
@@ -437,7 +437,7 @@
                         document.getElementById("searchUser").value = "";
                         loadChatList();
                     } else {
-                        showToast("User nahi mila ya woh aap khud hain", "error");
+                        showToast("User not found or it's you", "error");
                     }
                 } catch (e) { showToast("Server error", "error"); }
             } 
@@ -447,7 +447,7 @@
                 document.getElementById("searchCountryModal").classList.remove("hidden");
             } 
             else {
-                showToast("Email ya phone number daalein", "error");
+                showToast("Please enter email or phone number", "error");
             }
         }
 
@@ -465,7 +465,7 @@
                     document.getElementById("searchUser").value = "";
                     loadChatList();
                 } else {
-                    showToast("User nahi mila ya woh aap khud hain", "error");
+                    showToast("User not found or it's you", "error");
                 }
             } catch (e) { showToast("Server error", "error"); }
         }
@@ -490,7 +490,7 @@
             const msgBox = document.getElementById("messages");
             msgBox.innerHTML = "";
             if (data.messages.length === 0) {
-                msgBox.innerHTML = '<p class="empty-msg">Abhi koi message nahi. Pehla message bhejein!</p>';
+                msgBox.innerHTML = '<p class="empty-msg">No messages yet. Send the first one!</p>';
             } else {
                 data.messages.forEach(m => addMessageToUI(m, m.sender_id === myUid));
             }
@@ -578,7 +578,7 @@
             forwardSelectedUsers = [];
             const list = document.getElementById("forwardList");
             if (chatListData.length === 0) {
-                list.innerHTML = '<p class="empty-msg">Koi chat nahi.</p>';
+                list.innerHTML = '<p class="empty-msg">No chats yet.</p>';
                 document.getElementById("forwardModal").classList.remove("hidden");
                 return;
             }
@@ -619,7 +619,7 @@
         async function doForward() {
             if (!forwardingMessage) return;
             if (forwardSelectedUsers.length === 0) {
-                showToast("Kam az kam ek user select karein", "error");
+                showToast("Please select at least one user", "error");
                 return;
             }
             const msg = forwardingMessage;
@@ -641,7 +641,7 @@
                     }
                 }));
             }
-            showToast(`${forwardSelectedUsers.length} users ko forward ho gaya`, "success");
+            showToast(`Forwarded to ${forwardSelectedUsers.length} users`, "success");
             closeForwardModal();
         }
 
@@ -660,7 +660,7 @@
 
         function showTypingIndicator(name) {
             const indicator = document.getElementById("typingIndicator");
-            document.getElementById("typingText").textContent = `${name} typing`;
+            document.getElementById("typingText").textContent = `${name} is typing`;
             indicator.classList.remove("hidden");
             clearTimeout(hideTypingTimer);
             hideTypingTimer = setTimeout(hideTypingIndicator, 3000);
@@ -674,7 +674,7 @@
             const file = event.target.files[0];
             if (!file) return;
             if (file.size > 25 * 1024 * 1024) {
-                showToast("File 25MB se bari hai", "error");
+                showToast("File size exceeds 25MB", "error");
                 return;
             }
             selectedFile = file;
@@ -703,7 +703,7 @@
                     if (data.success) {
                         fileData = { file_url: data.file_url, file_type: data.file_type, file_name: data.file_name };
                     } else {
-                        showToast("File upload nahi hui", "error");
+                        showToast("File upload failed", "error");
                         return;
                     }
                 } catch (e) {
@@ -737,9 +737,9 @@
             currentChatUser = null;
             document.getElementById("chatHeader").innerHTML = `
                 <button class="back-btn" onclick="closeChat()">←</button>
-                <p>Chat select karein</p>
+                <p>Select a chat</p>
             `;
-            document.getElementById("messages").innerHTML = '<p class="empty-msg">Chat shuru karne ke liye user select karein</p>';
+            document.getElementById("messages").innerHTML = '<p class="empty-msg">Select a user to start chatting</p>';
             document.getElementById("messageInput").classList.add("hidden");
             clearFile();
             document.getElementById("chatArea").classList.remove("active");
@@ -766,7 +766,7 @@
                         localStorage.setItem("dp_url", data.dp_url);
                         myDp = data.dp_url;
                         setMyAvatar();
-                        showToast("DP update ho gayi", "success");
+                        showToast("DP updated successfully", "success");
                     }
                 }
             } catch (e) { showToast("DP upload error", "error"); }
@@ -791,7 +791,7 @@
                 const data = await res.json();
                 if (data.success) {
                     closeUsernameModal();
-                    showToast("Username update ho gaya", "success");
+                    showToast("Username updated successfully", "success");
                 }
             } catch (e) { showToast("Error", "error"); }
         }
@@ -800,7 +800,7 @@
             if (!currentChatUser) return;
             const defaultName = savedContacts[currentChatUser.uid] || currentChatUser.username;
             document.getElementById("contactSavedName").value = defaultName;
-            document.getElementById("saveContactInfo").textContent = `${currentChatUser.username} ko kis naam se save karna hai?`;
+            document.getElementById("saveContactInfo").textContent = `What name do you want to save ${currentChatUser.username} as?`;
             document.getElementById("saveContactModal").classList.remove("hidden");
         }
         function closeSaveContact() {
@@ -821,7 +821,7 @@
                     closeSaveContact();
                     renderChatHeader();
                     renderChatList();
-                    showToast("Contact save ho gaya", "success");
+                    showToast("Contact saved successfully", "success");
                 }
             } catch (e) { showToast("Error", "error"); }
         }
@@ -842,7 +842,7 @@
                 const data = await res.json();
                 if (data.success) {
                     localStorage.clear();
-                    showToast("Account delete ho gaya", "success");
+                    showToast("Account deleted successfully", "success");
                     setTimeout(() => window.location.href = "/", 1500);
                 }
             } catch (e) { showToast("Error", "error"); }

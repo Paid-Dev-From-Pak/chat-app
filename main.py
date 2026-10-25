@@ -128,7 +128,7 @@ def register(user: UserRegister):
         phone_clean = user.phone.replace(" ", "").replace("-", "").strip()
         existing = db.collection("users").where("phone", "==", phone_clean).stream()
         for e in existing:
-            raise HTTPException(status_code=400, detail="Yeh phone number pehle se register hai")
+            raise HTTPException(status_code=400, detail="This phone number is already registered")
         firebase_user = auth_client.create_user(
             email=user.email,
             password=user.password,
@@ -156,7 +156,7 @@ def login(user: UserLogin):
         user_data = u.to_dict()
         break
     if not user_data:
-        raise HTTPException(status_code=404, detail="User nahi mila")
+        raise HTTPException(status_code=404, detail="User not found")
     return {
         "success": True,
         "uid": user_data["uid"],
@@ -171,7 +171,7 @@ def find_user(email: str):
     for u in users:
         data = u.to_dict()
         return {"success": True, "user": data}
-    raise HTTPException(status_code=404, detail="User nahi mila")
+    raise HTTPException(status_code=404, detail="User not found")
 
 @app.get("/find-phone/{phone}")
 def find_phone(phone: str):
@@ -180,13 +180,13 @@ def find_phone(phone: str):
     for u in users:
         data = u.to_dict()
         return {"success": True, "user": data}
-    raise HTTPException(status_code=404, detail="User nahi mila")
+    raise HTTPException(status_code=404, detail="User not found")
 
 @app.post("/update-username")
 async def update_username(data: UpdateUsername):
     user_doc = db.collection("users").document(data.user_id).get()
     if not user_doc.exists:
-        raise HTTPException(status_code=404, detail="User nahi mila")
+        raise HTTPException(status_code=404, detail="User not found")
     db.collection("users").document(data.user_id).update({"username": data.new_username})
     try:
         auth_client.update_user(data.user_id, display_name=data.new_username)
@@ -203,7 +203,7 @@ async def update_username(data: UpdateUsername):
 async def update_dp(data: UpdateDP):
     user_doc = db.collection("users").document(data.user_id).get()
     if not user_doc.exists:
-        raise HTTPException(status_code=404, detail="User nahi mila")
+        raise HTTPException(status_code=404, detail="User not found")
     db.collection("users").document(data.user_id).update({"dp_url": data.dp_url})
     await manager.broadcast({
         "type": "dp_updated",
@@ -217,7 +217,7 @@ def save_contact(data: SaveContact):
     owner_doc = db.collection("users").document(data.owner_id).get()
     contact_doc = db.collection("users").document(data.contact_id).get()
     if not owner_doc.exists or not contact_doc.exists:
-        raise HTTPException(status_code=404, detail="User nahi mila")
+        raise HTTPException(status_code=404, detail="User not found")
     db.collection("contacts").document(data.owner_id).collection("saved").document(data.contact_id).set({
         "contact_id": data.contact_id,
         "saved_name": data.saved_name,
@@ -264,7 +264,7 @@ async def upload_file(file: UploadFile = File(...)):
 def download_file(filename: str):
     file_path = os.path.join(UPLOAD_DIR, filename)
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File nahi mili")
+        raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path, filename=filename, media_type="application/octet-stream")
 
 @app.post("/send-message")
@@ -423,7 +423,7 @@ async def delete_account(data: DeleteAccount):
     user_id = data.user_id
     user_doc = db.collection("users").document(user_id).get()
     if not user_doc.exists:
-        raise HTTPException(status_code=404, detail="User nahi mila")
+        raise HTTPException(status_code=404, detail="User not found")
     chats = db.collection("chats").stream()
     for chat in chats:
         chat_id = chat.id
@@ -444,7 +444,7 @@ async def delete_account(data: DeleteAccount):
     except Exception as e:
         print(f"Auth delete error: {e}")
     await manager.close_user(user_id)
-    return {"success": True, "message": "Account delete ho gaya"}
+    return {"success": True, "message": "Account deleted successfully"}
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):

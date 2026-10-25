@@ -101,7 +101,6 @@
         }
         populateCountryDropdown();
 
-        // ===== PASSWORD EYE TOGGLE (Only Eye, No Monkey) =====
         window.togglePassword = function(inputId, btn) {
             const input = document.getElementById(inputId);
             if (input.type === "password") {
@@ -135,7 +134,7 @@
             const phoneLocal = document.getElementById("regPhone").value.trim();
 
             if (!username || !email || !password || !phoneLocal) {
-                document.getElementById("registerError").textContent = "Sab fields bharein";
+                document.getElementById("registerError").textContent = "Please fill all fields";
                 return;
             }
 
@@ -169,7 +168,7 @@
             const password = document.getElementById("loginPassword").value;
 
             if (!email || !password) {
-                document.getElementById("loginError").textContent = "Email aur password dein";
+                document.getElementById("loginError").textContent = "Please enter email and password";
                 return;
             }
 
