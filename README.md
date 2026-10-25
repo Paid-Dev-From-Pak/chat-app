@@ -93,6 +93,7 @@ A modern chat application built with **FastAPI**, **Firebase**, and **WebSocket*
 
 ## 📁 Project Structure
 
+```text
 chat-app/
 ├── frontend/
 │   ├── index.html      # Login / Register
@@ -103,6 +104,7 @@ chat-app/
 ├── firebase_config.py  # Firebase setup
 ├── requirements.txt    # Dependencies
 └── README.md
+```
 
 
 ---
